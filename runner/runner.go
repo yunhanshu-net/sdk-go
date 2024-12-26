@@ -1,6 +1,11 @@
 package runner
 
+type Conn struct {
+}
+
 type Runner struct {
+	conn *Conn
+
 	WorkPath   string `json:"work_path"`
 	RunnerType string `json:"runner_type"`
 	Version    string `json:"version"`
