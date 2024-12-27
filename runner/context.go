@@ -7,6 +7,11 @@ import (
 
 type Context struct {
 	runner   *Runner
+	about    int
 	Request  *request.Request
 	Response *response.Response
+}
+
+func (c *Context) About() {
+	c.about = 1
 }

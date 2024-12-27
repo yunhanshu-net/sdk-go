@@ -3,25 +3,19 @@ package runner
 import (
 	"fmt"
 	"github.com/nats-io/nats.go"
+	"github.com/yunhanshu-net/sdk-go/model/request"
+	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
 	"os"
-	"runtime"
 )
 
 const (
-	commandConnect = "connect"
+	commandConnect = "_connect_"
 )
-
-func (r *Runner) ReadRequest() {
-
-}
-
-func (r *Runner) init() {
-	runtime.GOMAXPROCS(1)
-}
 
 func (r *Runner) start() {
 	command := os.Args[1]
-	//jsonFileName := os.Args[2]
+	jsonFileName := os.Args[2]
+	r.init()
 
 	switch command {
 	case commandConnect: //建立长连接
@@ -37,23 +31,42 @@ func (r *Runner) start() {
 		}
 	default:
 		//默认即时调用模式，调用后立刻结束程序
-
+		var req request.Request
+		err := jsonx.UnmarshalFromFile(jsonFileName, &req)
+		if err != nil {
+			fmt.Println("jsonx.UnmarshalFromFile(jsonFileName, &req) err:" + err.Error())
+			return
+		}
+		fileIo{}
+		r.handel(&req)
+		r.exit = make(<-chan struct{})
 	}
 
 }
 
 func (r *Runner) Run() {
 
+	r.start()
+
+	select {
+	case <-r.exit:
+		//todo 释放资源
+		if r.isKeepAlive {
+			r.wg.Wait()
+			r.Close()
+		}
+		return
+	}
 	//单核心执行，防止程序把资源占用尽
 
-	command := os.Args[1]
-	jsonFileName := os.Args[2]
-	fmt.Println(command)
-	fmt.Println(jsonFileName)
-	//workPath := os.Args[3]
-	dir, err := os.Getwd()
-	fmt.Println("当前目录。", dir)
-	fmt.Println(err)
+	//command := os.Args[1]
+	//jsonFileName := os.Args[2]
+	//fmt.Println(command)
+	//fmt.Println(jsonFileName)
+	////workPath := os.Args[3]
+	//dir, err := os.Getwd()
+	//fmt.Println("当前目录。", dir)
+	//fmt.Println(err)
 
 	//m := runtime.MemStats{}
 	////todo
@@ -65,15 +78,15 @@ func (r *Runner) Run() {
 	//}
 	//fmt.Println(reqContext)
 
-	for {
-		select {
-		case ctx := <-r.contextChan:
-			fmt.Println(ctx)
-		case <-r.exit:
-			return
-
-		}
-	}
+	//for {
+	//	select {
+	//	case ctx := <-r.contextChan:
+	//		fmt.Println(ctx)
+	//	case <-r.exit:
+	//		return
+	//
+	//	}
+	//}
 
 	//todo handel ctx
 	//context := &Context{Request: jsonFileName, IsDebug: r.IsDebug, Cmd: command, runtimeInfo: &RuntimeInfo{

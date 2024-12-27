@@ -16,13 +16,17 @@ type Info struct {
 }
 
 type Runner struct {
-	nats        *nats.Conn
-	sub         *nats.Subscription
-	isKeepAlive bool
-	contextChan chan *Context
-	wg          *sync.WaitGroup
-	exit        <-chan struct{}
-	info        Info
+	args            []string
+	isKeepAlive     bool
+	info            *Info
+	nats            *nats.Conn
+	contextChan     chan *Context
+	sub             *nats.Subscription
+	handelFunctions map[string]*Worker
+	wg              *sync.WaitGroup
+	exit            <-chan struct{}
+
+	notFound func(ctx *Context)
 }
 
 func (r *Runner) Close() {
