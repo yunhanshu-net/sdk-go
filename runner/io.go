@@ -6,6 +6,6 @@ import (
 )
 
 type IO interface {
-	Input(runner *Runner) *request.Request
-	Output(runner *Runner, rsp *response.Response)
+	Input(runner *Runner) (*request.Request, error)
+	Output(runner *Runner, rsp *response.Response) error
 }

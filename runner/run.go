@@ -2,7 +2,6 @@ package runner
 
 import (
 	"fmt"
-	"github.com/nats-io/nats.go"
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
 	"os"
@@ -19,16 +18,21 @@ func (r *Runner) start() {
 
 	switch command {
 	case commandConnect: //建立长连接
-		connect, err := nats.Connect(nats.DefaultURL)
-		if err != nil {
-			panic(err)
-		}
-		r.nats = connect
-		//todo 连接nats
-		err = r.connect()
+		nt := &natsConn{}
+		err := nt.Connect(r)
 		if err != nil {
 			return
 		}
+		//connect, err := nats.Connect(nats.DefaultURL)
+		//if err != nil {
+		//	panic(err)
+		//}
+		//r.nats = connect
+		////todo 连接nats
+		//err = r.connect()
+		//if err != nil {
+		//	return
+		//}
 	default:
 		//默认即时调用模式，调用后立刻结束程序
 		var req request.Request
@@ -37,8 +41,8 @@ func (r *Runner) start() {
 			fmt.Println("jsonx.UnmarshalFromFile(jsonFileName, &req) err:" + err.Error())
 			return
 		}
-		fileIo{}
-		r.handel(&req)
+		f := &fileIo{}
+		r.handel(f)
 		r.exit = make(<-chan struct{})
 	}
 

@@ -13,7 +13,10 @@ type Worker struct {
 }
 
 func (r *Runner) handel(io IO) error {
-	req := io.Input(r)
+	req, err := io.Input(r)
+	if err != nil {
+		return err
+	}
 	work := r.handelFunctions[req.Url+"."+req.Method]
 	ctx := &Context{
 		runner:   r,

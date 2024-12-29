@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"github.com/nats-io/nats.go"
 	"sync"
 )
 
@@ -16,12 +15,14 @@ type Info struct {
 }
 
 type Runner struct {
-	args            []string
-	isKeepAlive     bool
-	info            *Info
-	nats            *nats.Conn
-	contextChan     chan *Context
-	sub             *nats.Subscription
+	conn Conn
+
+	args        []string
+	isKeepAlive bool
+	info        *Info
+	//nats            *nats.Conn
+	contextChan chan *Context
+	//sub             *nats.Subscription
 	handelFunctions map[string]*Worker
 	wg              *sync.WaitGroup
 	exit            <-chan struct{}
@@ -30,6 +31,5 @@ type Runner struct {
 }
 
 func (r *Runner) Close() {
-	r.sub.Unsubscribe()
-	r.nats.Close()
+	r.conn.Close()
 }
