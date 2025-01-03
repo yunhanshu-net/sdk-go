@@ -12,3 +12,7 @@ func (r *Runner) init() {
 	r.Get("/_ping", ping)
 
 }
+
+func (r *Runner) GetCommand() string {
+	return r.args[1]
+}

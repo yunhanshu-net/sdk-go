@@ -9,6 +9,7 @@ func (c *Context) GetLogger() *logger.Logger {
 
 	mp := make(map[string]interface{})
 	mp["a_tenant"] = c.runner.info.User
+	mp["a_trace_id"] = c.Request.TraceID
 	mp["a_soft"] = c.runner.info.Soft
 	mp["a_command"] = c.runner.info.Command
 	if c.runner != nil {

@@ -1,6 +1,8 @@
 package runner
 
 import (
+	"context"
+	"github.com/yunhanshu-net/sdk-go/model/request"
 	"sync"
 )
 
@@ -15,18 +17,20 @@ type Info struct {
 }
 
 type Runner struct {
-	conn Conn
-
-	args        []string
-	isKeepAlive bool
-	info        *Info
+	lastHandelTs int64
+	conn         Conn
+	args         []string
+	isKeepAlive  bool
+	info         *Info
 	//nats            *nats.Conn
-	contextChan chan *Context
+	//contextChan chan *Context
 	//sub             *nats.Subscription
 	handelFunctions map[string]*Worker
 	wg              *sync.WaitGroup
-	exit            <-chan struct{}
-
+	requestCh       chan *request.Request
+	//exit            <-chan struct{}
+	exitCtx  context.Context
+	exit     context.CancelFunc
 	notFound func(ctx *Context)
 }
 

@@ -1,7 +1,5 @@
 package response
 
-import "encoding/json"
-
 type BizData struct {
 	MetaData map[string]interface{} `json:"meta_data"`
 	Msg      string                 `json:"msg"`
@@ -12,16 +10,12 @@ type BizData struct {
 type Response struct {
 	StatusCode int               `json:"status_code"`
 	Headers    map[string]string `json:"headers"`
-	Body       string            `json:"body"`
+	Body       *BizData          `json:"body"`
 }
 
 func (r *Response) JSON(statusCode int, data *BizData) error {
-	marshal, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
 	r.StatusCode = statusCode
-	r.Body = string(marshal)
+	r.Body = data
 	return nil
 }
 

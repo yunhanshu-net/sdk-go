@@ -1,6 +1,7 @@
 package request
 
 type Request struct {
+	TraceID string                 `json:"trace_id"`
 	Url     string                 `json:"url"`
 	Method  string                 `json:"method"`
 	Headers map[string]string      `json:"headers"`
