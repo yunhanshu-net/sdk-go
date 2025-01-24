@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/nats-io/nats.go"
 	"github.com/yunhanshu-net/sdk-go/model/request"
@@ -31,6 +32,11 @@ func (n *natsConn) Connect() error {
 
 		n.reqWg.Add(1)
 		requestMsg := &request.Request{}
+		err := json.Unmarshal(msg.Data, requestMsg)
+		if err != nil {
+			fmt.Println(err)
+			defer n.reqWg.Done()
+		}
 		n.requestCh <- requestMsg
 		//err := r.conn.OnRequest(req)
 		//if err != nil {
