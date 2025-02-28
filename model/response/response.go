@@ -13,7 +13,7 @@ type Response struct {
 	Body       *BizData          `json:"body"`
 }
 
-func (r *Response) JSON(statusCode int, data *BizData) error {
+func (r *Response) json(statusCode int, data *BizData) error {
 	r.StatusCode = statusCode
 	r.Body = data
 	return nil
@@ -24,5 +24,12 @@ func (r *Response) OKWithJSON(data interface{}, meta ...map[string]interface{}) 
 	if len(meta) > 0 {
 		bz.MetaData = meta[0]
 	}
-	return r.JSON(200, bz)
+	return r.json(200, bz)
+}
+func (r *Response) FailWithJSON(data interface{}, msg string, meta ...map[string]interface{}) error {
+	bz := &BizData{Msg: msg, Code: -1, Data: data}
+	if len(meta) > 0 {
+		bz.MetaData = meta[0]
+	}
+	return r.json(200, bz)
 }

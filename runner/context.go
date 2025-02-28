@@ -6,10 +6,12 @@ import (
 )
 
 type Context struct {
-	runner   *Runner
-	about    int
-	Request  *request.Request
-	Response *response.Response
+	runner *Runner
+
+	transportConfig *TransportConfig
+	about           int
+	Request         *request.Request
+	Response        *response.Response
 }
 
 func (c *Context) About() {

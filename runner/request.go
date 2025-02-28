@@ -1,10 +1,8 @@
 package runner
 
+import "github.com/yunhanshu-net/sdk-go/model/request"
+
 type Request struct {
-	Url      string            `json:"url"`
-	Method   string            `json:"method"`
-	Headers  map[string]string `json:"headers"`
-	Body     string            `json:"body"` //请求json
-	FileList []string          `json:"file_list"`
-	Info     Info              `json:"info"`
+	Request         *request.Request `json:"request"`
+	TransportConfig *TransportConfig `json:"transport_config"`
 }

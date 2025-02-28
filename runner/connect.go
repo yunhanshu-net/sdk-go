@@ -3,9 +3,9 @@ package runner
 // 先建立三次握手 确保连接上nats，双方能够正常通信
 //func (r *Runner) connect() error {
 //	//调度引擎发起第一次握手
-//	connectKey := fmt.Sprintf("runner.connect.%s.%s", r.info.User, r.info.Soft)
+//	connectKey := fmt.Sprintf("runner.connect.%s.%s", r.info.User, r.info.Runner)
 //	connectMsg := nats.NewMsg(connectKey)
-//	handelKey := fmt.Sprintf("runner.req.%s.%s", r.info.User, r.info.Soft)
+//	handelKey := fmt.Sprintf("runner.req.%s.%s", r.info.User, r.info.Runner)
 //	sub, err := r.nats.Subscribe(handelKey, r.onMsg)
 //	if err != nil { //连接失败响应
 //		connectMsg.Header.Set("status", "-1")

@@ -2,9 +2,8 @@ package runner
 
 // Transport 通信层协议
 type Transport interface {
-	ReadMessage() (*TransportMsg, error)
-	WriteMessage(*TransportMsg) error
-	Done() <-chan struct{}
+	ReadMessage() <-chan *TransportMsg
 	Ping() error
 	Close() error
+	Wait() <-chan struct{}
 }

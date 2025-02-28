@@ -8,16 +8,16 @@ import (
 func (c *Context) GetLogger() *logger.Logger {
 
 	mp := make(map[string]interface{})
-	mp["a_tenant"] = c.runner.info.User
+	mp["a_tenant"] = c.transportConfig.User
 	mp["a_trace_id"] = c.Request.TraceID
-	mp["a_soft"] = c.runner.info.Soft
-	mp["a_command"] = c.runner.info.Command
+	mp["a_soft"] = c.transportConfig.Runner
+	mp["a_command"] = c.transportConfig.Command
 	if c.runner != nil {
-		if c.runner.info.Version != "" {
-			mp["a_version"] = c.runner.info.Version
+		if c.transportConfig.Version != "" {
+			mp["a_version"] = c.transportConfig.Version
 		}
 	}
 
-	mp["a_soft_classify"] = fmt.Sprintf("/%s/%s", c.runner.info.User, c.runner.info.Soft)
+	mp["a_soft_classify"] = fmt.Sprintf("/%s/%s", c.transportConfig.User, c.transportConfig.Runner)
 	return &logger.Logger{DataMap: mp}
 }
