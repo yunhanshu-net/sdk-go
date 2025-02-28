@@ -28,18 +28,16 @@ func newTransportNats(ctxInfo *ContextInfo) (*transportNats, error) {
 	transport.natsConn = conn
 
 	//函数请求
-	//runner.user.soft.version.run.api
+	//runner.user.soft.version.run
+	//header 携带路由和
 	//函数请求
 
 	//关闭连接
-	//runner.user.soft.version.close.request 关闭连接请求
-	//runner.user.soft.version.close.request_ack 关闭连接请求确认
-	//runner.user.soft.version.close.response 关闭连接响应
-	//runner.user.soft.version.close.response_ack 关闭连接响应确认
+	//runner.user.soft.version.close 关闭连接请求
 	//关闭连接
 
 	//心跳检测，探针，判断调度引擎是否还存活正常
-	//runner.user.soft.version.heartbeatCheck
+	//runner.user.soft.version.heartbeat_check
 	//心跳检测，探针
 
 	subject := fmt.Sprintf("runner.>")
