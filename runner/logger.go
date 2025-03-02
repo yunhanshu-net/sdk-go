@@ -11,7 +11,7 @@ func (c *Context) GetLogger() *logger.Logger {
 	mp["a_tenant"] = c.transportConfig.User
 	mp["a_trace_id"] = c.Request.TraceID
 	mp["a_soft"] = c.transportConfig.Runner
-	mp["a_command"] = c.transportConfig.Command
+	mp["a_command"] = c.transportConfig.Route
 	if c.runner != nil {
 		if c.transportConfig.Version != "" {
 			mp["a_version"] = c.transportConfig.Version

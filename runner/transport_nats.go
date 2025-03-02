@@ -43,29 +43,31 @@ func newTransportNats(transportConfig *TransportConfig) (trs *transportNats, err
 
 	transport := &transportNats{
 		msgList:     make(chan *TransportMsg, 2000),
+		wg:          &sync.WaitGroup{},
 		contextInfo: transportConfig,
 	}
 	conn, err := nats.Connect(url)
 	if err != nil {
 		return nil, err
 	}
-
+	transport.natsConn = conn
 	err = transport.Ping() //建立连接
 	if err != nil {
 		return nil, err
 	}
 
-	transport.natsConn = conn
-	subject := fmt.Sprintf("runner.%s.%s.%s.*", transportConfig.User, transportConfig.Runner, transportConfig.Version)
-	sub, err := conn.QueueSubscribe(subject, group, func(msg *nats.Msg) {
+	//subject := fmt.Sprintf("runner.%s.%s.%s.*", transportConfig.User, transportConfig.Runner, transportConfig.Version)
+	//subject := fmt.Sprintf("runner.%s.%s.%s.*", transportConfig.User, transportConfig.Runner, transportConfig.Version)
+	//sub, err := conn.QueueSubscribe("runner.>", group, func(msg *nats.Msg) {
+	sub, err := conn.Subscribe("runner.>", func(msg *nats.Msg) {
 		transport.wg.Add(1)
 		transport.readMsgCount++
 		subjects := strings.Split(msg.Subject, ".")
 		cmd := subjects[len(subjects)-1]
 
-		fmt.Println("receive:", string(msg.Data))
+		//fmt.Println("receive:", string(msg.Data))
 		headers := make(map[string][]string)
-		for k, v := range headers {
+		for k, v := range msg.Header {
 			headers[k] = v
 		}
 		if cmd == MsgTypeRun {
@@ -82,6 +84,7 @@ func newTransportNats(transportConfig *TransportConfig) (trs *transportNats, err
 	if err != nil {
 		return nil, err
 	}
+	trs = new(transportNats)
 	trs.natsSub = sub
 	return transport, nil
 
@@ -92,46 +95,45 @@ func (t *transportNats) ReadMessage() <-chan *TransportMsg {
 }
 
 func (t *transportNats) Ping() error {
-	msg := nats.NewMsg(fmt.Sprintf("runner.%s.%s.%s.connect",
+	msg := nats.NewMsg(fmt.Sprintf("runcher.%s.%s.%s.connect",
 		t.contextInfo.User, t.contextInfo.Runner, t.contextInfo.Version))
 	msg.Header.Set("connect", "req")
-	requestMsg, err := t.natsConn.RequestMsg(msg, time.Second*2)
+	resMsg, err := t.natsConn.RequestMsg(msg, time.Second*2)
+	//err := t.natsConn.PublishMsg(msg)
 	if err != nil {
+		fmt.Println("Ping err", err)
 		return err
 	}
-	res := requestMsg.Header.Get("connect")
-	if res == "resp" { //说明关闭成功
-		return nil
-	}
-	return fmt.Errorf(requestMsg.Header.Get("msg"))
+	fmt.Println("res:", string(resMsg.Data))
+	return nil
+	//todo 测试不做响应判断
+	//res := requestMsg.Header.Get("connect")
+	//if res == "resp" { //说明关闭成功
+	//	return nil
+	//}
+	//return fmt.Errorf(requestMsg.Header.Get("msg"))
 }
 
 func (t *transportNats) Close() error {
 	//先发送关闭请求
-	msg := nats.NewMsg(fmt.Sprintf("runner.%s.%s.%s.close",
+	msg := nats.NewMsg(fmt.Sprintf("runcher.%s.%s.%s.close",
 		t.contextInfo.User, t.contextInfo.Runner, t.contextInfo.Version))
 	msg.Header.Set("close", "req")
 	requestMsg, err := t.natsConn.RequestMsg(msg, time.Second*2)
 	if err != nil {
 		return err
 	}
-	res := requestMsg.Header.Get("close")
 
-	if res == "resp" { //说明关闭成功
-		t.natsSub.Unsubscribe()
-		t.natsConn.Close()
-
-		return nil
-	}
-	return fmt.Errorf(requestMsg.Header.Get("msg"))
-}
-
-func (t *transportNats) Wait() <-chan struct{} {
-back:
-	t.wg.Wait()
-	if t.readMsgCount != t.responseMsgCount {
-		goto back
-	}
-
-	return make(<-chan struct{})
+	t.natsSub.Unsubscribe()
+	t.natsConn.Close()
+	//fmt.Println("Close : ", string(requestMsg.Data))
+	//res := requestMsg.Header.Get("close")
+	fmt.Println("Close res ", string(requestMsg.Data))
+	//todo 这里先不做返回确认
+	//if res == "resp" { //说明关闭成功
+	//	t.natsSub.Unsubscribe()
+	//	t.natsConn.Close()
+	//	return nil
+	//}
+	return nil
 }

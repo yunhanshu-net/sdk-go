@@ -3,7 +3,7 @@ package runner
 const (
 	MsgTypeClose          = "MsgClose"
 	MsgTypeHeartbeatCheck = "HeartbeatCheck"
-	MsgTypeRun            = "Run"
+	MsgTypeRun            = "run"
 )
 
 type MsgHeader map[string][]string

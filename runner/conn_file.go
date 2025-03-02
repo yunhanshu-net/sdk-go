@@ -16,8 +16,8 @@ type connResponse struct {
 }
 
 type fileConn struct {
-	args      []string
-	info      *Info
+	args []string
+	//info      *Info
 	reqWg     *sync.WaitGroup
 	nats      *nats.Conn
 	sub       *nats.Subscription

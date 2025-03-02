@@ -22,7 +22,7 @@ type TransportMsg struct {
 }
 
 func (t *TransportMsg) Reply(req *TransportMsg) error {
-	if t.msgKind == "nats" {
+	if t.msgKind == "nats" || t.msgKind == "" {
 		tsNats := t.transport.(*transportNats)
 		defer func() {
 			tsNats.wg.Done()

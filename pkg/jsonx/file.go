@@ -8,7 +8,6 @@ import (
 )
 
 func UnmarshalFromFile(filePath string, v interface{}) error {
-	fmt.Println("file path:", filePath)
 	file, err := os.ReadFile(filePath)
 	if err != nil {
 		return err

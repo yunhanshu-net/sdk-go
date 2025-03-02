@@ -5,5 +5,4 @@ type Transport interface {
 	ReadMessage() <-chan *TransportMsg
 	Ping() error
 	Close() error
-	Wait() <-chan struct{}
 }

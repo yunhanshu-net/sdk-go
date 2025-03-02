@@ -8,3 +8,11 @@ type Request struct {
 	Body    map[string]interface{} `json:"body"` //请求json
 	FileMap map[string][]string    `json:"file_map"`
 }
+
+type DebugRequest struct {
+	Request
+
+	User    string `json:"user"`
+	Runner  string `json:"runner"`
+	Version string `json:"version"`
+}
