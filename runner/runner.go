@@ -40,7 +40,6 @@ type Runner struct {
 	lastHandelTs    int64
 	isKeepAlive     bool
 
-	conn Conn
 	args []string
 
 	//nats            *nats.Conn
@@ -51,10 +50,6 @@ type Runner struct {
 	//exit            <-chan struct{}
 	exitCtx context.Context
 	exit    context.CancelFunc
-}
-
-func (r *Runner) Close() {
-	r.conn.Close()
 }
 
 func (r *Runner) runRequest(method string, router string, ctx *Context) error {

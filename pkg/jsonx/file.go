@@ -3,6 +3,7 @@ package jsonx
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"os"
 	"strings"
 )
@@ -12,7 +13,7 @@ func UnmarshalFromFile(filePath string, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(file, v)
+	return sonic.Unmarshal(file, v)
 }
 
 func SaveFile(filePath string, el interface{}) error {

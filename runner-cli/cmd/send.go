@@ -71,7 +71,7 @@ func send(runner string, req *runner.Request, noOut bool) {
 	msg.Header.Set("version", req.TransportConfig.Version)
 	msg.Header.Set("method", req.Request.Method)
 	msg.Header.Set("route", req.Request.Route)
-	requestMsg, err := Conn.RequestMsg(msg, time.Second*3)
+	requestMsg, err := Conn.RequestMsg(msg, time.Second*5)
 	if err != nil {
 		panic(err)
 	}

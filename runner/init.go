@@ -1,8 +1,8 @@
 package runner
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
@@ -35,7 +35,7 @@ func (r *Runner) run(req *Request) {
 	if err != nil {
 		panic(err)
 	}
-	marshal, err := json.Marshal(ctx.Response)
+	marshal, err := sonic.Marshal(ctx.Response)
 	if err != nil {
 		panic(err)
 	}
@@ -118,7 +118,7 @@ func (r *Runner) handelMsg(transportMsg *TransportMsg, runner *Runner) {
 	method := transportMsg.Headers.Get("method")
 	route := transportMsg.Headers.Get("route")
 	var reqMsg request.Request
-	err1 := json.Unmarshal(transportMsg.Data, &reqMsg)
+	err1 := sonic.Unmarshal(transportMsg.Data, &reqMsg)
 	if err1 != nil {
 		panic(err1)
 	}
@@ -130,11 +130,11 @@ func (r *Runner) handelMsg(transportMsg *TransportMsg, runner *Runner) {
 	}
 	ctx := &Context{Request: &reqMsg, Response: &response.Response{}, transportConfig: r.transportConfig}
 	err := runner.runRequest(method, route, ctx)
-	if err1 != nil {
+	if err != nil {
 		panic(err)
 	}
 	t := newTransportMsg(transportMsg)
-	marshal, err1 := json.Marshal(ctx.Response)
+	marshal, err1 := sonic.Marshal(ctx.Response)
 	if err1 != nil {
 		panic(err)
 	}
