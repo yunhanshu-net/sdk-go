@@ -3,6 +3,6 @@ package runner
 // Transport 通信层协议
 type Transport interface {
 	ReadMessage() <-chan *TransportMsg
-	Ping() error
+	Connect() error
 	Close() error
 }

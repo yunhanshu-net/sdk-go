@@ -76,13 +76,8 @@ func (r *Runner) getRequest(filePath string) (*Request, error) {
 }
 
 func (r *Runner) listen() {
-	//timeout := 2 * time.Second
-	//idleTimer := time.NewTimer(timeout)
-	//defer idleTimer.Stop()
-
 	ticker := time.NewTicker(time.Second * 2)
 	defer ticker.Stop()
-	//maxIdealTime := time.NewTicker(time.Second)
 	for {
 		// 每次处理消息后重置定时器
 		//idleTimer.Reset(timeout)
@@ -95,7 +90,6 @@ func (r *Runner) listen() {
 			r.lastHandelTs = time.Now().Unix()
 			go r.handelMsg(msg, r)
 
-		//case <-idleTimer.C:
 		case <-ticker.C:
 			if r.idle > 0 {
 				ts := time.Now().Unix()

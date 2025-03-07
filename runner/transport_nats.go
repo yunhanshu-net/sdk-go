@@ -51,7 +51,7 @@ func newTransportNats(transportConfig *TransportConfig) (trs *transportNats, err
 		return nil, err
 	}
 	transport.natsConn = conn
-	err = transport.Ping() //建立连接
+	err = transport.Connect() //建立连接
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func newTransportNats(transportConfig *TransportConfig) (trs *transportNats, err
 	//subject := fmt.Sprintf("runner.%s.%s.%s.*", transportConfig.User, transportConfig.Runner, transportConfig.Version)
 	//subject := fmt.Sprintf("runner.%s.%s.%s.*", transportConfig.User, transportConfig.Runner, transportConfig.Version)
 	//sub, err := conn.QueueSubscribe("runner.>", group, func(msg *nats.Msg) {
-	sub, err := conn.Subscribe("runner.>", func(msg *nats.Msg) {
+	sub, err := conn.QueueSubscribe("runner.>", group, func(msg *nats.Msg) {
 		transport.wg.Add(1)
 		transport.readMsgCount++
 		subjects := strings.Split(msg.Subject, ".")
@@ -94,7 +94,7 @@ func (t *transportNats) ReadMessage() <-chan *TransportMsg {
 	return t.msgList
 }
 
-func (t *transportNats) Ping() error {
+func (t *transportNats) Connect() error {
 	msg := nats.NewMsg(fmt.Sprintf("runcher.%s.%s.%s.connect",
 		t.contextInfo.User, t.contextInfo.Runner, t.contextInfo.Version))
 	msg.Header.Set("connect", "req")

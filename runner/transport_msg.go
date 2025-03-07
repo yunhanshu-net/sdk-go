@@ -1,6 +1,9 @@
 package runner
 
-import "github.com/nats-io/nats.go"
+import (
+	"github.com/nats-io/nats.go"
+	"strings"
+)
 
 func newTransportMsg(t *TransportMsg) *TransportMsg {
 	r := &TransportMsg{
@@ -28,7 +31,8 @@ func (t *TransportMsg) Reply(req *TransportMsg) error {
 			tsNats.wg.Done()
 			tsNats.responseMsgCount++
 		}()
-		msg := nats.NewMsg(t.Subject)
+		subject := strings.Replace(t.Subject, "runner.", "runcher.", 1)
+		msg := nats.NewMsg(subject)
 		for k, v := range req.Headers {
 			msg.Header[k] = v
 		}

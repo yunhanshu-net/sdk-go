@@ -76,6 +76,8 @@ func send(runner string, req *runner.Request, noOut bool) {
 		panic(err)
 	}
 	if !noOut {
-		fmt.Printf("subject:%s data:%s", subject, string(requestMsg.Data))
+		fmt.Printf("send to -> subject:%s data:%s\n", subject, string(msg.Data))
 	}
+
+	fmt.Printf("recv to -> subject:%s data:%s\n", requestMsg.Subject, string(requestMsg.Data))
 }

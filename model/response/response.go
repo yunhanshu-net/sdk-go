@@ -1,16 +1,22 @@
 package response
 
+type Response struct {
+	MetaData   map[string]interface{} `json:"meta_data"` //sdk 层
+	StatusCode int                    `json:"status_code"`
+	Headers    map[string]string      `json:"headers"`
+	Body       *BizData               `json:"body"`
+}
+
 type BizData struct {
-	MetaData map[string]interface{} `json:"meta_data"`
+	MetaData map[string]interface{} `json:"meta_data"` //用户层
 	Msg      string                 `json:"msg"`
 	Data     interface{}            `json:"data"`
 	Code     int                    `json:"code"`
 }
 
-type Response struct {
-	StatusCode int               `json:"status_code"`
-	Headers    map[string]string `json:"headers"`
-	Body       *BizData          `json:"body"`
+type RunnerResponse struct {
+	Response *Response              `json:"response"`
+	MetaData map[string]interface{} `json:"meta_data"` //内核层
 }
 
 func (r *Response) json(statusCode int, data *BizData) error {

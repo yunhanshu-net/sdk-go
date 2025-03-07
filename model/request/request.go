@@ -16,3 +16,19 @@ type DebugRequest struct {
 	Runner  string `json:"runner"`
 	Version string `json:"version"`
 }
+
+type Runner struct {
+	Name    string `json:"name"`
+	User    string `json:"user"`
+	Version string `json:"version"`
+}
+type RunnerRequest struct {
+	Runner          *Runner                `json:"runner"`
+	TransportConfig *TransportConfig       `json:"transport_config"`
+	Metadata        map[string]interface{} `json:"metadata"`
+	Request         *Request               `json:"request"`
+}
+
+type TransportConfig struct {
+	Type string `json:"type"`
+}
