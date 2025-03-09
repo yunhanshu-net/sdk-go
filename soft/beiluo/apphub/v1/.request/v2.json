@@ -1,0 +1,41 @@
+{
+  "uuid": "1",
+  "timeout": 30,
+  "runner": {
+    "work_path": "Users/yy/Desktop/code/github.com/sdk-go/soft/beiluo/apphub/v1",
+    "name": "apphub",
+    "user": "beiluo",
+    "version": "v1",
+    "command": "hello",
+    "request_json_path": "/path/to/request.json"
+  },
+  "transport_config": {
+    "type": "nats",
+    "metadata": {
+      "key1": "value1",
+      "key2": "value2"
+    }
+  },
+  "metadata": {
+    "customKey1": "customValue1",
+    "customKey2": "customValue2"
+  },
+  "request": {
+    "trace_id": "trace-12345",
+    "route": "/hello",
+    "method": "GET",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer token"
+    },
+    "body": {
+      "key1": "value1",
+      "key2": 123,
+      "key3": true
+    },
+    "file_map": {
+      "file1": ["path/to/file1.txt"],
+      "file2": ["path/to/file2.txt"]
+    }
+  }
+}
