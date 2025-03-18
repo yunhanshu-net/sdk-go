@@ -15,6 +15,14 @@ type Request struct {
 	FileMap map[string][]string    `json:"file_map"`
 }
 
+func (r *Request) ShouldBindJSON(obj interface{}) error {
+	marshal, err := json.Marshal(r.Body)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(marshal, obj)
+}
+
 type Runner struct {
 	Command         string `json:"command"`
 	WorkPath        string `json:"work_path"`
