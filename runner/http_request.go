@@ -1,6 +1,6 @@
 package runner
 
-func (r *Runner) Post(router string, handelFunc func(ctx *Context), opts ...Option) {
+func (r *Runner) Post(router string, handelFunc func(ctx *Context), config ...*Config) {
 	_, ok := r.handelFunctions[router]
 	if !ok {
 		worker := &Worker{
@@ -9,10 +9,8 @@ func (r *Runner) Post(router string, handelFunc func(ctx *Context), opts ...Opti
 			Path:   router,
 			Config: &Config{},
 		}
-		if len(opts) > 0 {
-			for _, opt := range opts {
-				opt(worker.Config)
-			}
+		if len(config) > 0 && config[0] != nil {
+			worker.Config = config[0]
 		}
 		r.handelFunctions[router+".POST"] = worker
 	} else {
@@ -20,7 +18,7 @@ func (r *Runner) Post(router string, handelFunc func(ctx *Context), opts ...Opti
 	}
 
 }
-func (r *Runner) Get(router string, handelFunc func(ctx *Context), opts ...Option) {
+func (r *Runner) Get(router string, handelFunc func(ctx *Context), config ...*Config) {
 	_, ok := r.handelFunctions[router]
 	if !ok {
 		worker := &Worker{
@@ -29,10 +27,8 @@ func (r *Runner) Get(router string, handelFunc func(ctx *Context), opts ...Optio
 			Path:   router,
 			Config: &Config{},
 		}
-		if len(opts) > 0 {
-			for _, opt := range opts {
-				opt(worker.Config)
-			}
+		if len(config) > 0 && config[0] != nil {
+			worker.Config = config[0]
 		}
 		r.handelFunctions[router+".GET"] = worker
 	} else {
