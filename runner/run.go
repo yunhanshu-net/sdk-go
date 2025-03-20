@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/yunhanshu-net/sdk-go/model"
 	"github.com/yunhanshu-net/sdk-go/pkg/logger"
@@ -53,6 +54,7 @@ func (r *Runner) Debug(user, runner, version string, idle int64, uuid string) er
 }
 
 func (r *Runner) Run() error {
+	fmt.Println("handelFunctions:", r.handelFunctions)
 	err := r.init(os.Args)
 	if err != nil {
 		return err

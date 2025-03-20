@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/bytedance/sonic"
 	"github.com/nats-io/nats.go"
@@ -15,6 +16,7 @@ import (
 )
 
 func New() *Runner {
+	fmt.Printf("new --------")
 	return &Runner{
 		idle:            5,
 		lastHandelTs:    time.Now(),
@@ -45,6 +47,7 @@ func (r *Runner) init(args []string) error {
 	if err != nil {
 		panic(err)
 	}
+
 	r.detail = req.Runner
 	if r.uuid == "" {
 		r.uuid = req.UUID
@@ -80,7 +83,17 @@ func (r *Runner) getRequest(filePath string) (*request.RunnerRequest, error) {
 }
 
 func (r *Runner) runRequest(method string, router string, ctx *Context) error {
-	worker := r.handelFunctions[router+"."+method]
+	if router[0] != '/' {
+		router = "/" + router
+	}
+
+	worker, ok := r.handelFunctions[router+"."+method]
+	if !ok {
+		marshal, _ := json.Marshal(r.handelFunctions)
+		fmt.Printf("handels: %s\n", string(marshal))
+		fmt.Printf("method:%s router:%s not found\n", method, router)
+		return fmt.Errorf("method:%s router:%s not found\n", method, router)
+	}
 	for _, fn := range worker.Handel {
 		fn(ctx)
 	}

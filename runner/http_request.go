@@ -1,5 +1,7 @@
 package runner
 
+import "fmt"
+
 func (r *Runner) Post(router string, handelFunc func(ctx *Context), config ...*Config) {
 	_, ok := r.handelFunctions[router]
 	if !ok {
@@ -21,6 +23,7 @@ func (r *Runner) Post(router string, handelFunc func(ctx *Context), config ...*C
 func (r *Runner) Get(router string, handelFunc func(ctx *Context), config ...*Config) {
 	_, ok := r.handelFunctions[router]
 	if !ok {
+		fmt.Println("get---------- !ok")
 		worker := &Worker{
 			Handel: []func(ctx *Context){handelFunc},
 			Method: "GET",
@@ -32,6 +35,7 @@ func (r *Runner) Get(router string, handelFunc func(ctx *Context), config ...*Co
 		}
 		r.handelFunctions[router+".GET"] = worker
 	} else {
+		fmt.Println("get---------- ok")
 		r.handelFunctions[router].Handel = append(r.handelFunctions[router].Handel, handelFunc)
 	}
 }
