@@ -11,6 +11,7 @@ import (
 	"github.com/yunhanshu-net/sdk-go/model/response"
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -38,11 +39,21 @@ type Runner struct {
 	handelFunctions map[string]*Worker
 }
 
+func (r *Runner) fmtHandelKey(router string, method string) string {
+	if !strings.HasPrefix(router, "/") {
+		router = "/" + router
+	}
+	router = strings.TrimSuffix(router, "/")
+	return router + "." + strings.ToUpper(method)
+
+}
+
 func (r *Runner) init(args []string) error {
 	r.args = args
 	runtime.GOMAXPROCS(2)
 	r.Get("/_env", env)
 	r.Get("/_ping", ping)
+	r.Get("/_router_info", r.routerInfo)
 	req, err := r.getRequest(r.args[2])
 	if err != nil {
 		panic(err)
@@ -82,13 +93,20 @@ func (r *Runner) getRequest(filePath string) (*request.RunnerRequest, error) {
 	return &req, nil
 }
 
+func (r *Runner) getRouterWorker(router string, method string) (worker *Worker, exist bool) {
+	worker, ok := r.handelFunctions[r.fmtHandelKey(router, method)]
+	if ok {
+		return worker, true
+	}
+	return nil, false
+}
 func (r *Runner) runRequest(method string, router string, ctx *Context) error {
 	if router[0] != '/' {
 		router = "/" + router
 	}
 
-	worker, ok := r.handelFunctions[router+"."+method]
-	if !ok {
+	worker, exist := r.getRouterWorker(router, method)
+	if !exist {
 		marshal, _ := json.Marshal(r.handelFunctions)
 		fmt.Printf("handels: %s\n", string(marshal))
 		fmt.Printf("method:%s router:%s not found\n", method, router)

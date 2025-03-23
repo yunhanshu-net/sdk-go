@@ -14,7 +14,7 @@ func (r *Runner) Post(router string, handelFunc func(ctx *Context), config ...*C
 		if len(config) > 0 && config[0] != nil {
 			worker.Config = config[0]
 		}
-		r.handelFunctions[router+".POST"] = worker
+		r.handelFunctions[r.fmtHandelKey(router, "POST")] = worker
 	} else {
 		r.handelFunctions[router].Handel = append(r.handelFunctions[router].Handel, handelFunc)
 	}
@@ -33,7 +33,8 @@ func (r *Runner) Get(router string, handelFunc func(ctx *Context), config ...*Co
 		if len(config) > 0 && config[0] != nil {
 			worker.Config = config[0]
 		}
-		r.handelFunctions[router+".GET"] = worker
+
+		r.handelFunctions[r.fmtHandelKey(router, "GET")] = worker
 	} else {
 		fmt.Println("get---------- ok")
 		r.handelFunctions[router].Handel = append(r.handelFunctions[router].Handel, handelFunc)

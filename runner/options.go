@@ -33,9 +33,9 @@ func NewConfig(opts ...Option) *Config {
 }
 
 type Config struct {
-	ApiDesc     string `json:"api_desc"`
-	IsPublicApi bool   `json:"is_public_api"`
-
+	ApiDesc     string      `json:"api_desc"`
+	IsPublicApi bool        `json:"is_public_api"`
+	Labels      []string    `json:"labels"`
 	ChineseName string      `json:"chinese_name"`
 	EnglishName string      `json:"english_name"`
 	Classify    string      `json:"classify"`
@@ -88,10 +88,7 @@ func (c *Config) getParams(p interface{}, mode string) (params []FuncParam, err 
 	}
 	typ := val.Type()
 	for i := 0; i < val.NumField(); i++ {
-		par := FuncParam{
-			Mode: mode,
-			Code: typ.Field(i).Name,
-		}
+		par := FuncParam{Mode: mode, Code: typ.Field(i).Name}
 		field := typ.Field(i)
 		jsonTag := field.Tag.Get("json")
 		if jsonTag != "" {
@@ -114,9 +111,12 @@ func (c *Config) getParams(p interface{}, mode string) (params []FuncParam, err 
 
 		if par.Type == "" {
 			switch field.Type.Kind() {
+			case reflect.Float32, reflect.Float64:
+				par.Type = "float"
 			case reflect.String:
 				par.Type = "string"
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+				reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 				par.Type = "number"
 			default:
 				par.Type = "string"
