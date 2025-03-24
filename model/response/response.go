@@ -4,9 +4,9 @@ type Response struct {
 	MetaData   map[string]interface{} `json:"meta_data"` //sdk 层
 	StatusCode int                    `json:"status_code"`
 	Headers    map[string]string      `json:"headers"`
-	DataType   IDataType              `json:"data_type"`
+	DataType   DataType               `json:"data_type"`
 	Body       interface{}            `json:"body"`
-	data       []*IDataType
+	data       []IData
 }
 
 type BizData struct {

@@ -2,13 +2,13 @@
 package jsonx
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 )
 
 // MustJSON ..
 func MustJSON(el interface{}) string {
-	marshal, err := json.Marshal(el)
+	marshal, err := sonic.Marshal(el)
 	if err != nil {
 		panic(err)
 	}
@@ -17,7 +17,7 @@ func MustJSON(el interface{}) string {
 
 // MustPrintJSON ...
 func MustPrintJSON(el interface{}) {
-	marshal, err := json.Marshal(el)
+	marshal, err := sonic.Marshal(el)
 	if err != nil {
 		fmt.Println(fmt.Sprintf("[jsonx] err:%s el:%+v", err.Error(), el))
 		return
@@ -27,7 +27,7 @@ func MustPrintJSON(el interface{}) {
 
 // JSONString ...
 func JSONString(el interface{}) string {
-	marshal, err := json.Marshal(el)
+	marshal, err := sonic.Marshal(el)
 	if err != nil {
 		return ""
 	}
@@ -36,7 +36,7 @@ func JSONString(el interface{}) string {
 
 // String ...
 func String(el interface{}) string {
-	marshal, err := json.Marshal(el)
+	marshal, err := sonic.Marshal(el)
 	if err != nil {
 		return ""
 	}

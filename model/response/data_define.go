@@ -3,7 +3,10 @@ package response
 type DataType string
 
 const (
-	DataTypeJSON = "JSON"
+	DataTypeJSON    = "json"
+	DataTypeTable   = "table"
+	DataTypeFiles   = "files"
+	DataTypeEcharts = "echarts"
 )
 
 type Data struct {
