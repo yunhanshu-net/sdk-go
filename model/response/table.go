@@ -20,18 +20,18 @@ func parserTableInfo(row interface{}) []column {
 	return columns
 }
 
-func (r *Response) Table(dataList interface{}) *Table {
+func (r *Response) Table(dataList interface{}) Table {
 	r.DataType = DataTypeTable
-	return &Table{
+	return &table{
 		val: dataList,
 	}
 }
 
-func (t *Table) Pagination() {
+func (t *table) Pagination() {
 
 }
 
-func (t *Table) Build() error {
+func (t *table) Build() error {
 	list, ok := t.val.([]interface{})
 	if !ok {
 		return fmt.Errorf("类型错误")
@@ -77,7 +77,7 @@ type pagination struct {
 	totalCount  int
 }
 
-type Table struct {
+type table struct {
 	response   *Response
 	Error      error
 	pagination pagination
