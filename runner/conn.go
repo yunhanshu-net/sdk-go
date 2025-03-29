@@ -6,7 +6,7 @@ import (
 	"github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
 	"github.com/yunhanshu-net/sdk-go/model/request"
-	"github.com/yunhanshu-net/sdk-go/model/response"
+	v2 "github.com/yunhanshu-net/sdk-go/model/response/v2"
 	"time"
 )
 
@@ -34,9 +34,14 @@ func (r *Runner) connect() error {
 		if err1 != nil {
 			panic(err1)
 		}
-		ctx := &Context{req: &reqMsg, Request: reqMsg.Request, Response: &response.Response{}}
-		err = r.runRequest(reqMsg.Request.Method, reqMsg.Request.Route, ctx)
-		marshal, err1 := sonic.Marshal(ctx.Response)
+		//ctx := &Context{req: &reqMsg, Request: reqMsg.Request, ResponseData: &response.ResponseData{}}
+		httpContext := &HttpContext{
+			Request:  reqMsg.Request,
+			runner:   reqMsg.Runner,
+			Response: &v2.ResponseData{},
+		}
+		err = r.runRequest(httpContext)
+		marshal, err1 := sonic.Marshal(httpContext.Response)
 		if err1 != nil {
 			panic(err)
 		}

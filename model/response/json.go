@@ -1,8 +1,14 @@
 package response
 
-type IData interface {
-	DataType() DataType
-}
+//type IData interface {
+//	DataType() DataType
+//	Build() error
+//}
+
+//type JSON interface {
+//
+//
+//}
 
 type JSON struct {
 	response *Response
@@ -27,12 +33,12 @@ func (r *Response) JSON(data interface{}) *JSON {
 
 func (j *JSON) Build() error {
 	j.response.DataType = DataTypeJSON
-	j.response.data = append(j.response.data, &jsonData{
-		TraceID: j.TraceID,
-		Data:    j.Data,
-		Code:    j.Code,
-		Msg:     j.Msg,
-	})
+	//j.response.data = append(j.response.data, &jsonData{
+	//	TraceID: j.TraceID,
+	//	Data:    j.Data,
+	//	Code:    j.Code,
+	//	Msg:     j.Msg,
+	//})
 	return nil
 }
 

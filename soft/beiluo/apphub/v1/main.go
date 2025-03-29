@@ -2,15 +2,17 @@ package main
 
 import (
 	"github.com/yunhanshu-net/sdk-go/runner"
+	_ "github.com/yunhanshu-net/sdk-go/soft/beiluo/apphub/v1/biz/user"
 )
 
 func main() {
 
-	runner.Get("/hello", func(ctx *runner.Context) {
+	runner.Get("/hello", func(ctx *runner.HttpContext) {
 		mp := make(map[string]interface{})
 		mp["hello"] = "world"
-		ctx.Response.OKWithJSON(mp)
+		ctx.Response.JSON(mp).Build()
 	})
+	//runner.Get("user/list", user.List)
 
 	err := runner.Run()
 	if err != nil {

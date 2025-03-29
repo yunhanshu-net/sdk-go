@@ -3,12 +3,11 @@ package runner
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bytedance/sonic"
 	"github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
 	"github.com/yunhanshu-net/sdk-go/model"
 	"github.com/yunhanshu-net/sdk-go/model/request"
-	"github.com/yunhanshu-net/sdk-go/model/response"
+	v2 "github.com/yunhanshu-net/sdk-go/model/response/v2"
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
 	"runtime"
 	"strings"
@@ -94,23 +93,22 @@ func (r *Runner) getRequest(filePath string) (*request.RunnerRequest, error) {
 }
 
 func (r *Runner) getRouterWorker(router string, method string) (worker *Worker, exist bool) {
+	if router[0] != '/' {
+		router = "/" + router
+	}
 	worker, ok := r.handelFunctions[r.fmtHandelKey(router, method)]
 	if ok {
 		return worker, true
 	}
 	return nil, false
 }
-func (r *Runner) runRequest(method string, router string, ctx *Context) error {
-	if router[0] != '/' {
-		router = "/" + router
-	}
-
-	worker, exist := r.getRouterWorker(router, method)
+func (r *Runner) runRequest(ctx *HttpContext) error {
+	worker, exist := r.getRouterWorker(ctx.Request.Route, ctx.Request.Method)
 	if !exist {
 		marshal, _ := json.Marshal(r.handelFunctions)
 		fmt.Printf("handels: %s\n", string(marshal))
-		fmt.Printf("method:%s router:%s not found\n", method, router)
-		return fmt.Errorf("method:%s router:%s not found\n", method, router)
+		fmt.Printf("method:%s router:%s not found\n", ctx.Request.Method, ctx.Request.Route)
+		return fmt.Errorf("method:%s router:%s not found\n", ctx.Request.Method, ctx.Request.Route)
 	}
 	for _, fn := range worker.Handel {
 		fn(ctx)
@@ -119,19 +117,33 @@ func (r *Runner) runRequest(method string, router string, ctx *Context) error {
 }
 
 func (r *Runner) run(req *request.RunnerRequest) {
-	ctx := &Context{
-		req:      req,
-		runner:   req.Runner,
+	//ctx := &Context{
+	//	req:      req,
+	//	runner:   req.Runner,
+	//	Request:  req.Request,
+	//	ResponseData: &response.ResponseData{},
+	//}
+
+	rsp := &v2.ResponseData{
+		MetaData: make(map[string]interface{}),
+	}
+	now := time.Now()
+	httpContext := &HttpContext{
 		Request:  req.Request,
-		Response: &response.Response{},
+		runner:   req.Runner,
+		Response: rsp,
 	}
-	err := r.runRequest(req.Request.Method, req.Request.Route, ctx)
+
+	err := r.runRequest(httpContext)
 	if err != nil {
 		panic(err)
 	}
-	marshal, err := sonic.Marshal(ctx.Response)
+	rsp.MetaData["func_cost"] = time.Since(now).String()
+	marshal, err := json.Marshal(httpContext.Response)
 	if err != nil {
 		panic(err)
 	}
+	//todo 这里只是用来测试
+	jsonx.SaveFile("./out.json", httpContext.Response)
 	fmt.Println("<Response>" + string(marshal) + "</Response>")
 }

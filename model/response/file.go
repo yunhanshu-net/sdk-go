@@ -29,9 +29,9 @@ func (f *files) AddFile(localFile *LocalFile) Files {
 }
 func (f *files) Build() error {
 	f.response.DataType = DataTypeFiles
-	f.response.data = append(f.response.data, &fileData{
-		Title: f.Title,
-		Files: f.localFiles,
-	})
+	//f.response.data = append(f.response.data, &fileData{
+	//	Title: f.Title,
+	//	Files: f.localFiles,
+	//})
 	return nil
 }

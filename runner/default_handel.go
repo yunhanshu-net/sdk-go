@@ -1,9 +1,9 @@
 package runner
 
-func env(ctx *Context) {
-	ctx.Response.OKWithJSON(map[string]string{"version": "1.0", "lang": "go"})
+func env(ctx *HttpContext) {
+	ctx.Response.JSON(map[string]string{"version": "1.0", "lang": "go"}).Build()
 }
 
-func ping(ctx *Context) {
-	ctx.Response.OKWithJSON(map[string]string{"ping": "pong"})
+func ping(ctx *HttpContext) {
+	ctx.Response.JSON(map[string]string{"ping": "pong"}).Build()
 }

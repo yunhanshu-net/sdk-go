@@ -6,7 +6,7 @@ type Response struct {
 	Headers    map[string]string      `json:"headers"`
 	DataType   DataType               `json:"data_type"`
 	Body       interface{}            `json:"body"`
-	data       []IData
+	//data       []IData
 }
 
 type BizData struct {

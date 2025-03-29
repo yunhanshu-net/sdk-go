@@ -1,7 +1,7 @@
 package response
 
 type Table interface {
-	Build() error
+	anyData
 }
 
 type tableData struct {
@@ -13,4 +13,8 @@ type tableData struct {
 
 func (d *tableData) DataType() DataType {
 	return DataTypeTable
+}
+
+func (d *tableData) Build() error {
+	return nil
 }

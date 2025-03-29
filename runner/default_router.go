@@ -2,7 +2,7 @@ package runner
 
 import "fmt"
 
-func (r *Runner) routerInfo(ctx *Context) {
+func (r *Runner) routerInfo(ctx *HttpContext) {
 	//apphub _get_router_info /array/diff GET
 	router := r.args[2]
 	method := r.args[3]
@@ -16,5 +16,5 @@ func (r *Runner) routerInfo(ctx *Context) {
 		ctx.Response.FailWithJSON(nil, fmt.Sprintf("method:%s router:%s GetParams err:%s", method, router, err))
 		return
 	}
-	ctx.Response.OKWithJSON(params)
+	ctx.Response.JSON(params).Build()
 }

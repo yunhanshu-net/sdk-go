@@ -1,12 +1,10 @@
 package runner
 
-import "fmt"
-
-func (r *Runner) Post(router string, handelFunc func(ctx *Context), config ...*Config) {
-	_, ok := r.handelFunctions[router]
+func (r *Runner) Post(router string, handelFunc func(ctx *HttpContext), config ...*Config) {
+	_, ok := r.handelFunctions[r.fmtHandelKey(router, "POST")]
 	if !ok {
 		worker := &Worker{
-			Handel: []func(*Context){handelFunc},
+			Handel: []func(ctx *HttpContext){handelFunc},
 			Method: "POST",
 			Path:   router,
 			Config: &Config{},
@@ -20,12 +18,11 @@ func (r *Runner) Post(router string, handelFunc func(ctx *Context), config ...*C
 	}
 
 }
-func (r *Runner) Get(router string, handelFunc func(ctx *Context), config ...*Config) {
-	_, ok := r.handelFunctions[router]
+func (r *Runner) Get(router string, handelFunc func(ctx *HttpContext), config ...*Config) {
+	_, ok := r.handelFunctions[r.fmtHandelKey(router, "GET")]
 	if !ok {
-		fmt.Println("get---------- !ok")
 		worker := &Worker{
-			Handel: []func(ctx *Context){handelFunc},
+			Handel: []func(ctx *HttpContext){handelFunc},
 			Method: "GET",
 			Path:   router,
 			Config: &Config{},
@@ -36,7 +33,6 @@ func (r *Runner) Get(router string, handelFunc func(ctx *Context), config ...*Co
 
 		r.handelFunctions[r.fmtHandelKey(router, "GET")] = worker
 	} else {
-		fmt.Println("get---------- ok")
 		r.handelFunctions[router].Handel = append(r.handelFunctions[router].Handel, handelFunc)
 	}
 }

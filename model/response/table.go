@@ -56,11 +56,11 @@ func (t *table) Build() error {
 	t.values = values
 
 	t.response.DataType = DataTypeTable
-	t.response.data = append(t.response.data, &tableData{
-		Columns:    t.columns,
-		Values:     t.values,
-		Pagination: t.pagination,
-	})
+	//t.response.data = append(t.response.data, &tableData{
+	//	Columns:    t.columns,
+	//	Values:     t.values,
+	//	Pagination: t.pagination,
+	//})
 
 	return nil
 }
@@ -85,4 +85,9 @@ type table struct {
 	columns    []column
 	values     map[string][]interface{}
 	data       interface{}
+}
+
+func (t *table) DataType() DataType {
+	//TODO implement me
+	panic("implement me")
 }
