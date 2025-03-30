@@ -3,10 +3,21 @@ package user
 import "github.com/yunhanshu-net/sdk-go/runner"
 
 func init() {
-	runner.Get("/user/list", List)
+	runner.Get("/user/list", List, &runner.Config{
+		ApiDesc:     "获取用户列表",
+		IsPublicApi: true,
+		Labels:      []string{"用户信息", "table"},
+		ChineseName: "获取用户列表",
+		EnglishName: "user_list",
+		Classify:    "用户信息",
+		Request:     ListReq{},
+		Response:    User{},
+	})
 }
 
 type ListReq struct {
+	Page int `json:"page"`
+	Size int `json:"size"`
 }
 
 type User struct {

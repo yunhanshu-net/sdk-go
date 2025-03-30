@@ -22,6 +22,7 @@ type FuncParam struct {
 	SelectOptions string `json:"select_options,omitempty"`
 	FileSizeLimit string `json:"file_size_limit,omitempty"`
 	FileTypeLimit string `json:"file_type_limit,omitempty"`
+	IsTableField  bool   `json:"is_table_field"`
 }
 
 func NewConfig(opts ...Option) *Config {
@@ -33,6 +34,8 @@ func NewConfig(opts ...Option) *Config {
 }
 
 type Config struct {
+	Router      string      `json:"router"`
+	Method      string      `json:"method"`
 	ApiDesc     string      `json:"api_desc"`
 	IsPublicApi bool        `json:"is_public_api"`
 	Labels      []string    `json:"labels"`
@@ -40,10 +43,10 @@ type Config struct {
 	EnglishName string      `json:"english_name"`
 	Classify    string      `json:"classify"`
 	Tags        string      `json:"tags"`
-	Params      []FuncParam `json:"params"`
-
-	Request  interface{} `json:"request,omitempty"`
-	Response interface{} `json:"response,omitempty"`
+	ParamsIn    []FuncParam `json:"params_in"`
+	ParamsOut   []FuncParam `json:"params_out"`
+	Request     interface{} `json:"-"`
+	Response    interface{} `json:"-"`
 }
 
 func getRunnerTag(runnerTag string) FuncParam {
@@ -84,6 +87,7 @@ func (c *Config) getParams(p interface{}, mode string) (params []FuncParam, err 
 		val = val.Elem()
 	}
 	if val.Kind() != reflect.Struct {
+		fmt.Println("input is not a struct", val.Kind())
 		return nil, fmt.Errorf("input is not a struct")
 	}
 	typ := val.Type()

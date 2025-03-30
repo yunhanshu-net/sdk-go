@@ -53,14 +53,19 @@ func (r *Runner) init(args []string) error {
 	r.Get("/_env", env)
 	r.Get("/_ping", ping)
 	r.Get("/_router_info", r.routerInfo)
-	req, err := r.getRequest(r.args[2])
+	r.Get("/_router_list_info", r.routerListInfo)
+	var err error
+	var req = new(request.RunnerRequest)
+	req, err = r.getRequest(r.args[2])
 	if err != nil {
 		panic(err)
 	}
 
-	r.detail = req.Runner
-	if r.uuid == "" {
-		r.uuid = req.UUID
+	if req != nil {
+		r.detail = req.Runner
+		if r.uuid == "" {
+			r.uuid = req.UUID
+		}
 	}
 
 	if r.args[1] == "_connect" { //长连接
