@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -15,6 +16,11 @@ func httpRequest(url string, wg *sync.WaitGroup) {
 		fmt.Println("请求失败:", err)
 		return
 	}
+	all, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(all))
 	defer resp.Body.Close() // 确保在函数结束时关闭响应体
 
 	fmt.Printf("请求 %s 返回状态码: %d\n", url, resp.StatusCode)
@@ -47,7 +53,7 @@ func loadTest(url string, numRequests int, limit int) {
 func main() {
 
 	url := "http://127.0.0.1:8888/runner/beiluo/apphub/hello"
-	numRequests := 10
+	numRequests := 3000
 
 	loadTest(url, numRequests, 10)
 }
