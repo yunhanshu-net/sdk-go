@@ -5,30 +5,34 @@ import (
 )
 
 type Runner struct {
-	//Kind       string `json:"kind"`        //类型，可执行程序，so文件等等
+	Kind string `json:"kind"` //类型，可执行程序，so文件等等
 
-	WorkPath        string `json:"work_path"`
-	Command         string `json:"command"`
-	RequestJsonPath string `json:"request_json_path"`
-	Language        string `json:"language"`   //编程语言
-	StoreRoot       string `json:"store_root"` //oss 存储的跟路径
-	Name            string `json:"name"`       //应用名称（英文标识）
-	ToolType        string `json:"tool_type"`  //工具类型
-	Version         string `json:"version"`    //应用版本
-	OssPath         string `json:"oss_path"`   //文件地址
-	User            string `json:"user"`       //所属租户
+	//WorkPath        string `json:"work_path"`
+	//Command         string `json:"command"`
+	//RequestJsonPath string `json:"request_json_path"`
+	//Language        string `json:"language"`   //编程语言
+	//StoreRoot       string `json:"store_root"` //oss 存储的跟路径
+	Name string `json:"name"` //应用名称（英文标识）
+	//ToolType        string `json:"tool_type"`  //工具类型
+	Version string `json:"version"` //应用版本
+	//OssPath         string `json:"oss_path"`   //文件地址
+	User string `json:"user"` //所属租户
 }
 
 func (r *Runner) GetSubject() string {
 	return fmt.Sprintf("runner.%s.%s.%s.run", r.User, r.Name, r.Version)
 }
 
+func (r *Runner) GetAddr() string {
+	return fmt.Sprintf("unix.%s.%s.%s", r.User, r.Name, r.Version)
+}
+func (r *Runner) GetUnixPath() string {
+	return fmt.Sprintf("./%s_%s_%s.sock", r.User, r.Name, r.Version)
+}
+
 func (r *Runner) Check() error {
 	if r.Name == "" {
 		return fmt.Errorf("name 不能为空")
-	}
-	if r.ToolType == "" {
-		return fmt.Errorf("ToolType 不能为空")
 	}
 	if r.Version == "" {
 		return fmt.Errorf("version 不能为空")

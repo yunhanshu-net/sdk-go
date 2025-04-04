@@ -18,3 +18,6 @@ func Get(router string, fn func(ctx *HttpContext), config ...*Config) {
 func Run() error {
 	return r.Run()
 }
+func Debug(user, runner, version string, idle int64, uuid string) error {
+	return r.Debug(user, runner, version, idle, uuid)
+}

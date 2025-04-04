@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/yunhanshu-net/sdk-go/model"
 	"github.com/yunhanshu-net/sdk-go/pkg/logger"
@@ -22,13 +21,16 @@ func (r *Runner) listen() {
 		// 每次处理消息后重置定时器
 		//idleTimer.Reset(timeout)
 		select {
+		case <-r.down:
+			r.close()
+			logrus.Infof("%s runner closed from server", r.GetUnixPath())
+			return
 		case <-ticker.C:
-			logrus.Infof("check uuid:%s\n", r.uuid)
-
 			if r.idle > 0 {
 				ts := time.Now().Unix()
 				if (ts - r.lastHandelTs.Unix()) > r.idle { //超过指定空闲时间的话需要释放进程
-					logrus.Infof("close uuid:%s\n", r.uuid)
+					//logrus.Infof("close uuid:%s\n", r.uuid)
+					logrus.Infof("%s runner auto closed", r.GetUnixPath())
 					r.close()
 					return
 				}
@@ -40,21 +42,23 @@ func (r *Runner) listen() {
 
 func (r *Runner) Debug(user, runner, version string, idle int64, uuid string) error {
 	r.uuid = uuid
+	r.isDebug = true
 	r.detail = &model.Runner{}
 	r.detail.Name = runner
 	r.detail.User = user
 	r.detail.Version = version
 	r.idle = idle
-	err := r.connect()
-	if err != nil {
-		return err
-	}
+	go func() {
+		err := r.connectRpc()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}()
 	r.listen()
 	return nil
 }
 
 func (r *Runner) Run() error {
-	fmt.Println("handelFunctions:", r.handelFunctions)
 	err := r.init(os.Args)
 	if err != nil {
 		return err

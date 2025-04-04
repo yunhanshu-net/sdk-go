@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
+	"github.com/smallnest/rpcx/server"
 	"github.com/yunhanshu-net/sdk-go/model"
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	v2 "github.com/yunhanshu-net/sdk-go/model/response/v2"
@@ -16,7 +17,6 @@ import (
 )
 
 func New() *Runner {
-	fmt.Printf("new --------")
 	return &Runner{
 		idle:            5,
 		lastHandelTs:    time.Now(),
@@ -26,16 +26,20 @@ func New() *Runner {
 }
 
 type Runner struct {
-	detail *model.Runner
-	uuid   string
-	conn   *nats.Conn
-	sub    *nats.Subscription
-	wg     *sync.WaitGroup
-	args   []string
+	isDebug bool
+	detail  *model.Runner
+	uuid    string
+	rpcSrv  *server.Server
+	conn    *nats.Conn
+	sub     *nats.Subscription
+	wg      *sync.WaitGroup
+	args    []string
 
 	idle            int64
 	lastHandelTs    time.Time
 	handelFunctions map[string]*Worker
+
+	down <-chan struct{}
 }
 
 func (r *Runner) fmtHandelKey(router string, method string) string {
@@ -69,8 +73,11 @@ func (r *Runner) init(args []string) error {
 	}
 
 	if r.args[1] == "_connect" { //长连接
+		if req.TransportConfig != nil && req.TransportConfig.IdleTime != 0 { //最大空闲时间
+			r.idle = int64(req.TransportConfig.IdleTime)
+		}
 		//todo 长连接
-		err = r.connect()
+		err = r.connectRpc()
 		if err != nil {
 			logrus.Infof("connect err:%s", err.Error())
 			panic(err)
@@ -80,7 +87,6 @@ func (r *Runner) init(args []string) error {
 		return nil
 	} else { //说明是单次执行
 		r.run(req)
-		logrus.Infof("uuid:%s run stop\n", r.uuid)
 		return nil
 	}
 

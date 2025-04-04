@@ -33,7 +33,7 @@ type Runner struct {
 }
 type RunnerRequest struct {
 	UUID            string                 `json:"uuid"`
-	Timeout         int                    `json:"sync"`
+	Timeout         int                    `json:"timeout"`
 	Runner          *model.Runner          `json:"runner"`
 	TransportConfig *TransportConfig       `json:"transport_config"`
 	Metadata        map[string]interface{} `json:"metadata"`
@@ -41,8 +41,8 @@ type RunnerRequest struct {
 }
 
 type TransportConfig struct {
+	IdleTime int                    `json:"idle_time"`
 	Type     string                 `json:"type"`
-	UUID     string                 `json:"uuid"`
 	Metadata map[string]interface{} `json:"metadata"`
 }
 
