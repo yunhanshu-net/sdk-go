@@ -10,6 +10,7 @@ import (
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	v2 "github.com/yunhanshu-net/sdk-go/model/response/v2"
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
+	"net"
 	"runtime"
 	"strings"
 	"sync"
@@ -22,10 +23,12 @@ func New() *Runner {
 		lastHandelTs:    time.Now(),
 		handelFunctions: make(map[string]*Worker),
 		wg:              &sync.WaitGroup{},
+		down:            make(chan struct{}, 1),
 	}
 }
 
 type Runner struct {
+	rpcConn net.Conn
 	isDebug bool
 	detail  *model.Runner
 	uuid    string
@@ -39,7 +42,7 @@ type Runner struct {
 	lastHandelTs    time.Time
 	handelFunctions map[string]*Worker
 
-	down <-chan struct{}
+	down chan struct{}
 }
 
 func (r *Runner) fmtHandelKey(router string, method string) string {
@@ -77,11 +80,13 @@ func (r *Runner) init(args []string) error {
 			r.idle = int64(req.TransportConfig.IdleTime)
 		}
 		//todo 长连接
-		err = r.connectRpc()
-		if err != nil {
-			logrus.Infof("connect err:%s", err.Error())
-			panic(err)
-		}
+		go func() {
+			err = r.connectRpc()
+			if err != nil {
+				logrus.Infof("connect err:%s", err.Error())
+				panic(err)
+			}
+		}()
 		r.listen()
 		logrus.Infof("uuid:%s listen stop\n", r.uuid)
 		return nil
@@ -104,9 +109,6 @@ func (r *Runner) getRequest(filePath string) (*request.RunnerRequest, error) {
 }
 
 func (r *Runner) getRouterWorker(router string, method string) (worker *Worker, exist bool) {
-	if router[0] != '/' {
-		router = "/" + router
-	}
 	worker, ok := r.handelFunctions[r.fmtHandelKey(router, method)]
 	if ok {
 		return worker, true

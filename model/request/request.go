@@ -56,3 +56,6 @@ func (r *RunnerRequest) Bytes() []byte {
 	}
 	return jsonBytes
 }
+
+type Ping struct {
+}

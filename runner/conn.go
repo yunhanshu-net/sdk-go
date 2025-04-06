@@ -2,10 +2,12 @@ package runner
 
 import (
 	"context"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/smallnest/rpcx/server"
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	v2 "github.com/yunhanshu-net/sdk-go/model/response/v2"
+	"net"
 	"os"
 	"time"
 )
@@ -99,15 +101,27 @@ func (r *Runner) GetUnixPath() string {
 func (r *Runner) connectRpc() error {
 	unixPath := r.GetUnixPath()
 	os.Remove(unixPath)
+	logrus.Infof("connectRpc" + unixPath)
 	s := server.NewServer()
 	rpc := &Rpc{r: r}
 	err := s.Register(rpc, "")
 	if err != nil {
-		logrus.Errorf(err.Error())
+		logrus.Errorf("connectRpc err:" + err.Error())
 		return err
 	}
+	logrus.Infof("connectRpc success" + unixPath)
 	r.rpcSrv = s
-	s.Serve("unix", unixPath)
+	fmt.Println("<connect-ok></connect-ok>")
+	err = s.Serve("unix", unixPath)
+	if err != nil {
+		logrus.Error("connectRpc err:%s", err)
+	}
+	return nil
+}
+
+func (r *Rpc) Ping(ctx context.Context, req *request.Ping, response *request.Ping) error {
+	clientConn := ctx.Value(server.RemoteConnContextKey).(net.Conn)
+	r.r.rpcConn = clientConn
 	return nil
 }
 
@@ -118,11 +132,10 @@ func (r *Rpc) Call(ctx context.Context, req *request.RunnerRequest, response *v2
 		Request:  req.Request,
 		runner:   req.Runner,
 		Response: response}
-	defer func() {
-		logrus.Infof("call err:%+v req:%+v runner:%+v rsp:%+v",
-			err, req.Request, req.Runner, httpContext.Response)
-	}()
-	logrus.Infof("req:%+v,res:%+v", req, response)
+	//defer func() {
+	//	logrus.Infof("call err:%+v req:%+v runner:%+v rsp:%+v",
+	//		err, req.Request, req.Runner, httpContext.Response)
+	//}()
 	err = r.r.runRequest(httpContext)
 	if err != nil {
 		return err
@@ -135,11 +148,15 @@ func (r *Rpc) Close(ctx context.Context, req *request.RunnerRequest, response *v
 	logrus.Infof("call close:%s", r.r.GetUnixPath())
 	response.StatusCode = 200
 	response.Msg = "ok"
-	r.r.down = make(<-chan struct{})
+	r.r.down <- struct{}{}
 	return nil
 }
 
 func (r *Runner) close() error {
+	err := r.rpcSrv.SendMessage(r.rpcConn, "", "", nil, []byte(r.detail.GetUnixPath()))
+	if err != nil {
+		return err
+	}
 	defer r.rpcSrv.Close()
 
 	//msg := nats.NewMsg(fmt.Sprintf("runcher.%s.%s.%s.close",

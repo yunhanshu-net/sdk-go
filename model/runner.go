@@ -27,7 +27,7 @@ func (r *Runner) GetAddr() string {
 	return fmt.Sprintf("unix.%s.%s.%s", r.User, r.Name, r.Version)
 }
 func (r *Runner) GetUnixPath() string {
-	return fmt.Sprintf("./%s_%s_%s.sock", r.User, r.Name, r.Version)
+	return fmt.Sprintf("%s_%s_%s.sock", r.User, r.Name, r.Version)
 }
 
 func (r *Runner) Check() error {
