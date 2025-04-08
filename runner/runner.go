@@ -45,6 +45,15 @@ type Runner struct {
 	down chan struct{}
 }
 
+func (r *Runner) getWorker(router string) *Worker {
+	key := r.fmtHandelKey(router, "GET")
+	return r.handelFunctions[key]
+}
+func (r *Runner) postWorker(router string) *Worker {
+	key := r.fmtHandelKey(router, "POST")
+	return r.handelFunctions[key]
+}
+
 func (r *Runner) fmtHandelKey(router string, method string) string {
 	if !strings.HasPrefix(router, "/") {
 		router = "/" + router
@@ -61,6 +70,7 @@ func (r *Runner) init(args []string) error {
 	r.Get("/_ping", ping)
 	r.Get("/_router_info", r.routerInfo)
 	r.Get("/_router_list_info", r.routerListInfo)
+	r.Post("/_callback", r.callback)
 	var err error
 	var req = new(request.RunnerRequest)
 	req, err = r.getRequest(r.args[2])

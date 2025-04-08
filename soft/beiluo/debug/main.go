@@ -14,11 +14,8 @@ func main() {
 	defer func() {
 		logrus.Infof("done")
 	}()
-	runner.Get("/hello", func(ctx *runner.HttpContext) {
-		ctx.Response.JSON(Hello{
-			Hello: "hello",
-			World: "World",
-		}).Build()
+	runner.Get("/hello", func(ctx *runner.HttpContext) error {
+		return ctx.Response.JSON(Hello{Hello: "hello", World: "World"}).Build()
 	})
 	//runner.Debug("beiluo", "debug", "v1", 30, "1211")
 	runner.Run()
