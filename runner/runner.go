@@ -124,7 +124,10 @@ func (r *Runner) runRequest(ctx *HttpContext) error {
 		return fmt.Errorf("method:%s router:%s not found\n", ctx.Request.Method, ctx.Request.Route)
 	}
 	for _, fn := range worker.Handel {
-		fn(ctx)
+		err := fn(ctx)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

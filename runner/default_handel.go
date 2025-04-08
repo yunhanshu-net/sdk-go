@@ -1,16 +1,16 @@
 package runner
 
-func env(ctx *HttpContext) {
-	ctx.Response.JSON(map[string]string{"version": "1.0", "lang": "go"}).Build()
+func env(ctx *HttpContext) error {
+	return ctx.Response.JSON(map[string]string{"version": "1.0", "lang": "go"}).Build()
 }
 
-func ping(ctx *HttpContext) {
-	ctx.Response.JSON(map[string]string{"ping": "pong"}).Build()
+func ping(ctx *HttpContext) error {
+	return ctx.Response.JSON(map[string]string{"ping": "pong"}).Build()
 }
 
-func (r *Runner) routerListInfo(ctx *HttpContext) {
+func (r *Runner) routerListInfo(ctx *HttpContext) error {
 	functions := r.handelFunctions
-	var configs []*Config
+	var configs []*ApiConfig
 	for _, worker := range functions {
 		if worker.IsDefaultRouter() {
 			continue
@@ -37,5 +37,5 @@ func (r *Runner) routerListInfo(ctx *HttpContext) {
 		}
 	}
 
-	ctx.Response.JSON(configs).Build()
+	return ctx.Response.JSON(configs).Build()
 }

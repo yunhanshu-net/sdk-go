@@ -3,7 +3,7 @@ package user
 import "github.com/yunhanshu-net/sdk-go/runner"
 
 func init() {
-	runner.Get("/user/list", List, &runner.Config{
+	runner.Get("/user/list", List, &runner.ApiConfig{
 		ApiDesc:     "获取用户列表",
 		IsPublicApi: true,
 		Labels:      []string{"用户信息", "table"},

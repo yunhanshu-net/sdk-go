@@ -13,6 +13,8 @@ require (
 	github.com/rpcxio/rpcx-examples v1.1.6
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smallnest/rpcx v1.9.1
+	gorm.io/driver/sqlite v1.5.7
+	gorm.io/gorm v1.25.12
 )
 
 require (
@@ -38,6 +40,8 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/juju/ratelimit v1.0.2 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kavu/go_reuseport v1.5.0 // indirect
@@ -47,6 +51,7 @@ require (
 	github.com/libp2p/go-sockaddr v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/miekg/dns v1.1.63 // indirect
 	github.com/nats-io/nkeys v0.4.9 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect

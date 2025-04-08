@@ -17,7 +17,7 @@ type DiffResp struct {
 
 func init() {
 
-	paramsConfig := &runner.Config{
+	paramsConfig := &runner.ApiConfig{
 		ApiDesc:     "基于原数组和新数组进行对比，新数组存在原数组不存在的元素视为新增元素，新数组不存在原数组存在视为删除元素",
 		ChineseName: "数组对比",
 		Labels:      []string{"数据分析", "科研", "编程", "办公"}, //适用场景？

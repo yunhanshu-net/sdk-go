@@ -7,7 +7,7 @@ type routerInfo struct {
 	Method string `json:"method"`
 }
 
-func (r *Runner) routerInfo(ctx *HttpContext) {
+func (r *Runner) routerInfo(ctx *HttpContext) error {
 
 	var req routerInfo
 	err := ctx.Request.ShouldBindJSON(&req)
@@ -20,12 +20,12 @@ func (r *Runner) routerInfo(ctx *HttpContext) {
 	worker, exist := r.getRouterWorker(req.Router, req.Method)
 	if !exist {
 		ctx.Response.FailWithJSON(nil, fmt.Sprintf("method:%s router:%s not exist", req.Method, req.Router))
-		return
+		return nil
 	}
 	params, err := worker.Config.GetParams()
 	if err != nil {
 		ctx.Response.FailWithJSON(nil, fmt.Sprintf("method:%s router:%s GetParams err:%s", req.Method, req.Router, err))
-		return
+		return nil
 	}
-	ctx.Response.JSON(params).Build()
+	return ctx.Response.JSON(params).Build()
 }

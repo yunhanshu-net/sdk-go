@@ -1,13 +1,13 @@
 package runner
 
-func (r *Runner) Post(router string, handelFunc func(ctx *HttpContext), config ...*Config) {
+func (r *Runner) Post(router string, handelFunc func(ctx *HttpContext) error, config ...*ApiConfig) {
 	_, ok := r.handelFunctions[r.fmtHandelKey(router, "POST")]
 	if !ok {
 		worker := &Worker{
-			Handel: []func(ctx *HttpContext){handelFunc},
+			Handel: []func(ctx *HttpContext) error{handelFunc},
 			Method: "POST",
 			Path:   router,
-			Config: &Config{},
+			Config: &ApiConfig{},
 		}
 		if len(config) > 0 && config[0] != nil {
 			worker.Config = config[0]
@@ -18,14 +18,14 @@ func (r *Runner) Post(router string, handelFunc func(ctx *HttpContext), config .
 	}
 
 }
-func (r *Runner) Get(router string, handelFunc func(ctx *HttpContext), config ...*Config) {
+func (r *Runner) Get(router string, handelFunc func(ctx *HttpContext) error, config ...*ApiConfig) {
 	_, ok := r.handelFunctions[r.fmtHandelKey(router, "GET")]
 	if !ok {
 		worker := &Worker{
-			Handel: []func(ctx *HttpContext){handelFunc},
+			Handel: []func(ctx *HttpContext) error{handelFunc},
 			Method: "GET",
 			Path:   router,
-			Config: &Config{},
+			Config: &ApiConfig{},
 		}
 		if len(config) > 0 && config[0] != nil {
 			worker.Config = config[0]

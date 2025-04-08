@@ -3,10 +3,10 @@ package runner
 import "strings"
 
 type Worker struct {
-	Handel []func(ctx *HttpContext) `json:"-"`
+	Handel []func(ctx *HttpContext) error `json:"-"`
 	Path   string
 	Method string
-	Config *Config
+	Config *ApiConfig
 }
 
 // IsDefaultRouter _开头的路由是默认路由

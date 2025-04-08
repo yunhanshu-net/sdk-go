@@ -14,8 +14,7 @@ type ResponseData struct {
 	DataType   DataType               `json:"data_type"`
 	Body       interface{}            `json:"body"`
 	Multiple   bool                   `json:"multiple"` //是否是多个数据类型？比如返回
-	//dataList   []anyData
-	data anyData
+	data       anyData
 }
 
 type BizData struct {

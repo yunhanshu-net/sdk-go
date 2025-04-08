@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-type Option func(*Config)
+type Option func(*ApiConfig)
 type FuncParam struct {
 	Code          string `json:"code,omitempty"`
 	Desc          string `json:"desc,omitempty"`
@@ -25,15 +25,15 @@ type FuncParam struct {
 	IsTableField  bool   `json:"is_table_field"`
 }
 
-func NewConfig(opts ...Option) *Config {
-	config := &Config{}
+func NewConfig(opts ...Option) *ApiConfig {
+	config := &ApiConfig{}
 	for _, opt := range opts {
 		opt(config)
 	}
 	return config
 }
 
-type Config struct {
+type ApiConfig struct {
 	Router      string      `json:"router"`
 	Method      string      `json:"method"`
 	ApiDesc     string      `json:"api_desc"`
@@ -45,8 +45,25 @@ type Config struct {
 	Tags        string      `json:"tags"`
 	ParamsIn    []FuncParam `json:"params_in"`
 	ParamsOut   []FuncParam `json:"params_out"`
-	Request     interface{} `json:"-"`
-	Response    interface{} `json:"-"`
+
+	Request  interface{} `json:"-"`
+	Response interface{} `json:"-"`
+
+	//创建新的api时候的回调函数,新增一个api假如新增了一张user表，
+	//可以在这里用gorm的db.AutoMigrate(&User)来创建表，保证新版本的api可以正常使用新增的表
+	//这个api只会在我创建这个api的时候执行一次
+	OnCreated func(ctx *HttpContext) error `json:"-"`
+
+	//api删除后触发回调，比如新增了一个字段，可以在这里做一些操作
+	AfterDelete func(ctx *HttpContext) error `json:"-"`
+
+	//每次版本发生变更都会回调这个函数（新增/删除api）
+	OnVersionChange func(ctx *HttpContext) error `json:"-"`
+
+	//程序结束前的回调函数，可以在程序结束前做一些操作，比如上报一些数据
+	BeforeClose func(ctx *HttpContext) error `json:"-"`
+	//程序结束后的回调函数，可以在程序结束后做一些操作，比如清理某些文件
+	AfterClose func(ctx *HttpContext) error `json:"-"`
 }
 
 func getRunnerTag(runnerTag string) FuncParam {
@@ -78,7 +95,7 @@ func getRunnerTag(runnerTag string) FuncParam {
 	return funcP
 }
 
-func (c *Config) getParams(p interface{}, mode string) (params []FuncParam, err error) {
+func (c *ApiConfig) getParams(p interface{}, mode string) (params []FuncParam, err error) {
 	if p == nil {
 		return nil, nil
 	}
@@ -134,7 +151,7 @@ func (c *Config) getParams(p interface{}, mode string) (params []FuncParam, err 
 	return params, nil
 }
 
-func (c *Config) GetParams() ([]FuncParam, error) {
+func (c *ApiConfig) GetParams() ([]FuncParam, error) {
 	var list []FuncParam
 	if c.Request != nil {
 		params, err := c.getParams(c.Request, "in")
@@ -154,12 +171,12 @@ func (c *Config) GetParams() ([]FuncParam, error) {
 }
 
 func WithPublicApi() Option {
-	return func(c *Config) {
+	return func(c *ApiConfig) {
 		c.IsPublicApi = true
 	}
 }
 func WithApiDesc(apiDesc string) Option {
-	return func(c *Config) {
+	return func(c *ApiConfig) {
 		c.ApiDesc = apiDesc
 	}
 }
