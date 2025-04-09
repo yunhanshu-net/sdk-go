@@ -16,7 +16,7 @@ const (
 
 func (r *Runner) callback(ctx *HttpContext) error {
 	var call callback
-	err := ctx.Request.ShouldBindJSON(&call)
+	err := ctx.Request.DecodeJSON(&call)
 	if err != nil {
 		return err
 	}

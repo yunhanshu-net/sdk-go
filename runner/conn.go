@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/smallnest/rpcx/server"
 	"github.com/yunhanshu-net/sdk-go/model/request"
-	v2 "github.com/yunhanshu-net/sdk-go/model/response/v2"
+	"github.com/yunhanshu-net/sdk-go/model/response"
 	"net"
 	"os"
 	"time"
@@ -46,7 +46,7 @@ func (r *Rpc) Ping(ctx context.Context, req *request.Ping, response *request.Pin
 	return nil
 }
 
-func (r *Rpc) Call(ctx context.Context, req *request.RunnerRequest, response *v2.ResponseData) error {
+func (r *Rpc) Call(ctx context.Context, req *request.RunnerRequest, response *response.Data) error {
 	r.r.lastHandelTs = time.Now()
 	var err error
 	httpContext := &HttpContext{
@@ -61,7 +61,7 @@ func (r *Rpc) Call(ctx context.Context, req *request.RunnerRequest, response *v2
 	return nil
 }
 
-func (r *Rpc) Close(ctx context.Context, req *request.RunnerRequest, response *v2.ResponseData) error {
+func (r *Rpc) Close(ctx context.Context, req *request.RunnerRequest, response *response.Data) error {
 	logrus.Infof("call close:%s", r.r.GetUnixPath())
 	response.StatusCode = 200
 	response.Msg = "ok"

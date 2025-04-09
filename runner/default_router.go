@@ -10,7 +10,7 @@ type routerInfo struct {
 func (r *Runner) routerInfo(ctx *HttpContext) error {
 
 	var req routerInfo
-	err := ctx.Request.ShouldBindJSON(&req)
+	err := ctx.Request.DecodeJSON(&req)
 	if err != nil {
 		panic(err)
 	}

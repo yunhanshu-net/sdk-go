@@ -7,6 +7,7 @@ import (
 )
 
 type Request struct {
+	Reset   bool                `json:"reset"`
 	TraceID string              `json:"trace_id"`
 	Route   string              `json:"route"`
 	Method  string              `json:"method"`
@@ -15,12 +16,17 @@ type Request struct {
 	FileMap map[string][]string `json:"file_map"`
 }
 
-func (r *Request) ShouldBindJSON(obj interface{}) error {
+func (r *Request) DecodeJSON(obj interface{}) error {
 	marshal, err := json.Marshal(r.Body)
 	if err != nil {
 		return err
 	}
 	return json.Unmarshal(marshal, obj)
+}
+
+func (r *Request) ReSetJSON(obj interface{}) {
+	r.Reset = true
+	r.Body = obj
 }
 
 type Runner struct {

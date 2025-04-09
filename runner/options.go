@@ -74,6 +74,14 @@ type ApiConfig struct {
 
 	//程序结束后的回调函数，可以在程序结束后做一些操作，比如清理某些文件
 	AfterClose func(ctx *HttpContext) error `json:"-"`
+
+	//每个api都是对应一个前端的功能，比如某些用户用了你的图书管理系统，他觉得你的这个图书登记的这个接口很好用，
+	//他们想要fork一份自己用这其实是多租户的概念，这时候需要保证数据的隔离，其实我们的做法是把被fork的用户的程序copy一份到fork用户的用户空间，然后把
+	//会依次执行所有OnCreated来初始化表，如果需要有一些fork的个性化数据需要处理可以在这里操作，比如插入一个fork的默认用户
+	AfterFork func(ctx *HttpContext) error
+
+	//验证输入框输入的名称是否重复或者输入是否合法
+	OnValidate func(ctx *HttpContext) error
 }
 
 func getRunnerTag(runnerTag string) FuncParam {

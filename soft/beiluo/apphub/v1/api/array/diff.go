@@ -62,7 +62,7 @@ func Diff(req *DiffReq) (resp *DiffResp, err error) {
 
 func DiffApi(ctx *runner.HttpContext) {
 	var req DiffReq
-	err := ctx.Request.ShouldBindJSON(&req)
+	err := ctx.Request.DecodeJSON(&req)
 	if err != nil {
 		ctx.Response.FailWithJSON(400, err.Error())
 		return
