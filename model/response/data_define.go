@@ -9,7 +9,12 @@ const (
 	DataTypeEcharts = "echarts"
 )
 
-type Data struct {
-	Type  DataType    `json:"type"`
-	Value interface{} `json:"value"`
+type Builder interface {
+	Build() error
+}
+
+type anyData interface {
+	Builder
+	BuildJSON() string
+	GetDataType() DataType
 }

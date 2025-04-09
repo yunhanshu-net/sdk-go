@@ -15,11 +15,8 @@ func init() {
 func (r *Runner) listen() {
 	ticker := time.NewTicker(time.Second * 1)
 	logrus.Infof("listen uuid:%s\n", r.uuid)
-
 	defer ticker.Stop()
 	for {
-		// 每次处理消息后重置定时器
-		//idleTimer.Reset(timeout)
 		select {
 		case <-r.down:
 			r.close()
@@ -29,7 +26,6 @@ func (r *Runner) listen() {
 			if r.idle > 0 {
 				ts := time.Now().Unix()
 				if (ts - r.lastHandelTs.Unix()) > r.idle { //超过指定空闲时间的话需要释放进程
-					//logrus.Infof("close uuid:%s\n", r.uuid)
 					logrus.Infof("%s runner auto closed", r.GetUnixPath())
 					r.close()
 					return

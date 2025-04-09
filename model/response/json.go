@@ -1,72 +1,74 @@
 package response
 
-//type IData interface {
-//	DataType() DataType
-//	Build() error
-//}
+import (
+	"net/http"
+)
 
-//type JSON interface {
-//
-//
-//}
+const (
+	successMsg  = "ok"
+	successCode = 0
+)
 
-type JSON struct {
-	response *Response
-	TraceID  string                 `json:"trace_id"`
-	MetaData map[string]interface{} `json:"meta_data"` //sdk 层
-	Code     int                    `json:"code"`
-	Msg      string                 `json:"msg"`
-	Data     interface{}            `json:"data"`
+type JSON interface {
+	Builder
 }
 
-func (j *JSON) DataType() DataType {
-	return DataTypeJSON
-}
-
-func (r *Response) JSON(data interface{}) *JSON {
+func (r *Data) JSON(data interface{}) JSON {
 	r.DataType = DataTypeJSON
-	bz := &JSON{Msg: "ok", Code: 0, Data: data, response: r}
-
-	r.StatusCode = 200
+	bz := &jsonData{Msg: successMsg, Code: successCode, Data: data, response: r}
+	r.StatusCode = http.StatusOK
 	return bz
 }
 
-func (j *JSON) Build() error {
-	j.response.DataType = DataTypeJSON
-	//j.response.data = append(j.response.data, &jsonData{
-	//	TraceID: j.TraceID,
-	//	Data:    j.Data,
-	//	Code:    j.Code,
-	//	Msg:     j.Msg,
-	//})
-	return nil
-}
-
-func (j *JSON) Fail(msg string) *JSON {
-	j.Code = -1
-	j.Msg = msg
-	return j
-}
-
-func (r *Response) json(statusCode int, data *JSON) error {
-	r.StatusCode = statusCode
-	r.Body = data
-	return nil
-}
-
-func (r *Response) OKWithJSON(data interface{}, meta ...map[string]interface{}) error {
+func (r *Data) FailWithJSON(data interface{}, msg string, meta ...map[string]interface{}) error {
 	r.DataType = DataTypeJSON
-	bz := &JSON{Msg: "ok", Code: 0, Data: data}
+
+	bz := &jsonData{Msg: msg, Code: -1, Data: data, DataType: DataTypeJSON}
 	if len(meta) > 0 {
 		bz.MetaData = meta[0]
 	}
-	return r.json(200, bz)
+	return bz.Build()
 }
-func (r *Response) FailWithJSON(data interface{}, msg string, meta ...map[string]interface{}) error {
-	r.DataType = DataTypeJSON
-	bz := &JSON{Msg: msg, Code: -1, Data: data}
-	if len(meta) > 0 {
-		bz.MetaData = meta[0]
+
+type jsonData struct {
+	response  *Data
+	DataType  DataType               `json:"data_type"`
+	TraceID   string                 `json:"trace_id"`
+	MetaData  map[string]interface{} `json:"meta_data"` //sdk 层
+	Code      int                    `json:"code"`
+	Msg       string                 `json:"msg"`
+	Data      interface{}            `json:"data"`
+	buildData string
+}
+
+func (j *jsonData) GetDataType() DataType {
+	return DataTypeJSON
+}
+
+func (j *jsonData) Build() error {
+	j.response.DataType = j.GetDataType()
+	j.response.Multiple = false
+	j.response.Body = &rsp{
+		Code:     j.Code,
+		Msg:      j.Msg,
+		Data:     j.Data,
+		DataType: DataTypeJSON,
+		TraceID:  j.TraceID,
+		MetaData: j.MetaData,
 	}
-	return r.json(200, bz)
+	//marshal, err := sonic.Marshal(j)
+	//if err != nil {
+	//	return err
+	//}
+	//j.buildData = string(marshal)
+	//j.response.data = j
+	//j.response.Body = j.BuildJSON()
+	return nil
+}
+
+func (j *jsonData) BuildJSON() string {
+	j.response.DataType = j.GetDataType()
+	j.response.Multiple = false
+	j.response.Body = j.buildData
+	return j.buildData
 }

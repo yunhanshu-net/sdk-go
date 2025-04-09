@@ -3,17 +3,15 @@ package runner
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
 	"github.com/smallnest/rpcx/server"
 	"github.com/yunhanshu-net/sdk-go/model"
 	"github.com/yunhanshu-net/sdk-go/model/request"
-	v2 "github.com/yunhanshu-net/sdk-go/model/response/v2"
+	"github.com/yunhanshu-net/sdk-go/model/response"
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
 	"net"
 	"runtime"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -22,27 +20,21 @@ func New() *Runner {
 		idle:            5,
 		lastHandelTs:    time.Now(),
 		handelFunctions: make(map[string]*Worker),
-		wg:              &sync.WaitGroup{},
 		down:            make(chan struct{}, 1),
 	}
 }
 
 type Runner struct {
-	rpcConn net.Conn
-	isDebug bool
-	detail  *model.Runner
-	uuid    string
-	rpcSrv  *server.Server
-	conn    *nats.Conn
-	sub     *nats.Subscription
-	wg      *sync.WaitGroup
-	args    []string
-
+	rpcConn         net.Conn
+	isDebug         bool
+	detail          *model.Runner
+	uuid            string
+	rpcSrv          *server.Server
+	args            []string
 	idle            int64
 	lastHandelTs    time.Time
 	handelFunctions map[string]*Worker
-
-	down chan struct{}
+	down            chan struct{}
 }
 
 func (r *Runner) getWorker(router string) *Worker {
@@ -60,7 +52,6 @@ func (r *Runner) fmtHandelKey(router string, method string) string {
 	}
 	router = strings.TrimSuffix(router, "/")
 	return router + "." + strings.ToUpper(method)
-
 }
 
 func (r *Runner) init(args []string) error {
@@ -89,7 +80,6 @@ func (r *Runner) init(args []string) error {
 		if req.TransportConfig != nil && req.TransportConfig.IdleTime != 0 { //最大空闲时间
 			r.idle = int64(req.TransportConfig.IdleTime)
 		}
-		//todo 长连接
 		go func() {
 			err = r.connectRpc()
 			if err != nil {
@@ -143,23 +133,10 @@ func (r *Runner) runRequest(ctx *HttpContext) error {
 }
 
 func (r *Runner) run(req *request.RunnerRequest) {
-	//ctx := &Context{
-	//	req:      req,
-	//	runner:   req.Runner,
-	//	Request:  req.Request,
-	//	ResponseData: &response.ResponseData{},
-	//}
 
-	rsp := &v2.ResponseData{
-		MetaData: make(map[string]interface{}),
-	}
+	rsp := &response.Data{MetaData: make(map[string]interface{})}
 	now := time.Now()
-	httpContext := &HttpContext{
-		Request:  req.Request,
-		runner:   req.Runner,
-		Response: rsp,
-	}
-
+	httpContext := &HttpContext{Request: req.Request, runner: req.Runner, Response: rsp}
 	err := r.runRequest(httpContext)
 	if err != nil {
 		panic(err)

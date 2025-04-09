@@ -35,6 +35,7 @@ func (r *Runner) callback(ctx *HttpContext) error {
 			callbackFunc = worker.Config.OnCreated
 		}
 	case callbackTypeOnVersionChange:
+		//遍历所有路由，只要有这个回调的，就执行
 		if worker.Config.OnVersionChange != nil {
 			callbackFunc = worker.Config.OnVersionChange
 		}
@@ -43,10 +44,12 @@ func (r *Runner) callback(ctx *HttpContext) error {
 			callbackFunc = worker.Config.AfterDelete
 		}
 	case callbackTypeAfterClose:
+		//遍历所有路由，只要有这个回调的，就执行
 		if worker.Config.AfterClose != nil {
 			callbackFunc = worker.Config.AfterClose
 		}
 	case callbackTypeBeforeClose:
+		//遍历所有路由，只要有这个回调的，就执行
 		if worker.Config.BeforeClose != nil {
 			callbackFunc = worker.Config.BeforeClose
 		}
