@@ -6,7 +6,7 @@ import (
 	"github.com/smallnest/rpcx/client"
 	"github.com/yunhanshu-net/sdk-go/model"
 	"github.com/yunhanshu-net/sdk-go/model/request"
-	v2 "github.com/yunhanshu-net/sdk-go/model/response/v2"
+	"github.com/yunhanshu-net/sdk-go/model/response"
 	"github.com/yunhanshu-net/sdk-go/pkg/syncx"
 	"log"
 	"time"
@@ -41,8 +41,8 @@ func Test(xClient client.XClient) {
 				User:    "beiluo",
 				Version: "v1",
 			}}
-			reply := &v2.ResponseData{}
-			err := xClient.Call(context.Background(), "Call", args, reply)
+			reply := &response.Data{}
+			err := xClient.Call(context.Background(), "call", args, reply)
 			if err != nil {
 				log.Fatalf("failed to call: %v", err)
 			}

@@ -35,7 +35,7 @@ func (r *Runner) connectRpc() error {
 	fmt.Println("<connect-ok></connect-ok>")
 	err = s.Serve("unix", unixPath)
 	if err != nil {
-		logrus.Error("connectRpc err:%s", err)
+		logrus.Errorf("connectRpc err:%s", err)
 	}
 	return nil
 }
@@ -46,18 +46,16 @@ func (r *Rpc) Ping(ctx context.Context, req *request.Ping, response *request.Pin
 	return nil
 }
 
-func (r *Rpc) Call(ctx context.Context, req *request.RunnerRequest, response *response.Data) error {
+func (r *Rpc) Call(ctx context.Context, req *request.RunnerRequest, resp *response.Data) error {
 	r.r.lastHandelTs = time.Now()
 	var err error
-	httpContext := &HttpContext{
-		Request:  req.Request,
-		runner:   req.Runner,
-		Response: response}
-	err = r.r.runRequest(httpContext)
+	//httpContext := &HttpContext{Request: req.Request, runner: req.Runner, Response: resp}
+	rsp, err := r.r.runRequest(ctx, req.Request)
 	if err != nil {
 		return err
 	}
-
+	*resp = *rsp
+	//todo 判断是否需要reset body
 	return nil
 }
 

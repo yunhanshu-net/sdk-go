@@ -1,8 +1,10 @@
 package runner
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"github.com/sirupsen/logrus"
 	"github.com/smallnest/rpcx/server"
 	"github.com/yunhanshu-net/sdk-go/model"
@@ -11,57 +13,40 @@ import (
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
 	"net"
 	"runtime"
-	"strings"
 	"time"
 )
 
 func New() *Runner {
 	return &Runner{
-		idle:            5,
-		lastHandelTs:    time.Now(),
-		handelFunctions: make(map[string]*Worker),
-		down:            make(chan struct{}, 1),
+		idle:         5,
+		lastHandelTs: time.Now(),
+		//handelFunctions: make(map[string]*Worker),
+		routerMap: make(map[string]*routerInfo),
+		down:      make(chan struct{}, 1),
 	}
 }
 
 type Runner struct {
-	rpcConn         net.Conn
-	isDebug         bool
-	detail          *model.Runner
-	uuid            string
-	rpcSrv          *server.Server
-	args            []string
-	idle            int64
-	lastHandelTs    time.Time
-	handelFunctions map[string]*Worker
-	down            chan struct{}
-}
-
-func (r *Runner) getWorker(router string) *Worker {
-	key := r.fmtHandelKey(router, "GET")
-	return r.handelFunctions[key]
-}
-func (r *Runner) postWorker(router string) *Worker {
-	key := r.fmtHandelKey(router, "POST")
-	return r.handelFunctions[key]
-}
-
-func (r *Runner) fmtHandelKey(router string, method string) string {
-	if !strings.HasPrefix(router, "/") {
-		router = "/" + router
-	}
-	router = strings.TrimSuffix(router, "/")
-	return router + "." + strings.ToUpper(method)
+	rpcConn      net.Conn
+	isDebug      bool
+	detail       *model.Runner
+	uuid         string
+	rpcSrv       *server.Server
+	args         []string
+	idle         int64
+	lastHandelTs time.Time
+	//handelFunctions map[string]*Worker
+	routerMap map[string]*routerInfo
+	down      chan struct{}
 }
 
 func (r *Runner) init(args []string) error {
 	r.args = args
 	runtime.GOMAXPROCS(2)
-	r.Get("/_env", env)
-	r.Get("/_ping", ping)
-	r.Get("/_router_info", r.routerInfo)
-	r.Get("/_router_list_info", r.routerListInfo)
-	r.Post("/_callback", r.callback)
+	r.get("/_env", env)
+	r.get("/_ping", ping)
+	r.get("/_router_info", r.routerInfo)
+	r.get("/_router_list_info", r.routerListInfo)
 	var err error
 	var req = new(request.RunnerRequest)
 	req, err = r.getRequest(r.args[2])
@@ -108,45 +93,52 @@ func (r *Runner) getRequest(filePath string) (*request.RunnerRequest, error) {
 	return &req, nil
 }
 
-func (r *Runner) getRouterWorker(router string, method string) (worker *Worker, exist bool) {
-	worker, ok := r.handelFunctions[r.fmtHandelKey(router, method)]
+func (r *Runner) getRouter(router string, method string) (worker *routerInfo, exist bool) {
+	worker, ok := r.routerMap[fmtKey(router, method)]
 	if ok {
 		return worker, true
 	}
 	return nil, false
 }
-func (r *Runner) runRequest(ctx *HttpContext) error {
-	worker, exist := r.getRouterWorker(ctx.Request.Route, ctx.Request.Method)
+
+func (r *Runner) runRequest(ctx0 context.Context, req *request.Request) (*response.Data, error) {
+	//worker, exist := r.getRouterWorker(ctx.Request.Route, ctx.Request.Method)
+	router, exist := r.getRouter(req.Route, req.Method)
+
 	if !exist {
-		marshal, _ := json.Marshal(r.handelFunctions)
+		marshal, _ := json.Marshal(r.routerMap)
 		fmt.Printf("handels: %s\n", string(marshal))
-		fmt.Printf("method:%s router:%s not found\n", ctx.Request.Method, ctx.Request.Route)
-		return fmt.Errorf("method:%s router:%s not found\n", ctx.Request.Method, ctx.Request.Route)
+		fmt.Printf("method:%s router:%s not found\n", req.Method, req.Route)
+		return nil, fmt.Errorf("method:%s router:%s not found\n", req.Method, req.Route)
 	}
-	for _, fn := range worker.Handel {
-		err := fn(ctx)
-		if err != nil {
-			return err
-		}
+
+	//marshal, err := sonic.Marshal(req.Body)
+	//if err != nil {
+	//	return nil, err
+	//}
+	_, rsp, err := router.call(ctx0, req.Body)
+	if err != nil {
+		logrus.Errorf("runRequest err:%s", err.Error())
+		return nil, err
 	}
-	return nil
+	//ctx.Response = rsp
+	//todo 判断是否需要reset body
+
+	return rsp, nil
 }
 
 func (r *Runner) run(req *request.RunnerRequest) {
 
-	rsp := &response.Data{MetaData: make(map[string]interface{})}
-	now := time.Now()
-	httpContext := &HttpContext{Request: req.Request, runner: req.Runner, Response: rsp}
-	err := r.runRequest(httpContext)
+	ctx := context.Background()
+	resp, err := r.runRequest(ctx, req.Request)
 	if err != nil {
 		panic(err)
 	}
-	rsp.MetaData["func_cost"] = time.Since(now).String()
-	marshal, err := json.Marshal(httpContext.Response)
+	marshal, err := sonic.Marshal(resp)
 	if err != nil {
 		panic(err)
 	}
 	//todo 这里只是用来测试
-	jsonx.SaveFile("./out.json", httpContext.Response)
+	//jsonx.SaveFile("./out.json", httpContext.Response)
 	fmt.Println("<Response>" + string(marshal) + "</Response>")
 }

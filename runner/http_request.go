@@ -1,38 +1,43 @@
 package runner
 
-func (r *Runner) Post(router string, handelFunc func(ctx *HttpContext) error, config ...*ApiConfig) {
-	_, ok := r.handelFunctions[r.fmtHandelKey(router, "POST")]
+func (r *Runner) get(router string, handel interface{}, config ...*ApiConfig) {
+	key := fmtKey(router, "GET")
+	_, ok := r.routerMap[key]
 	if !ok {
-		worker := &Worker{
-			Handel: []func(ctx *HttpContext) error{handelFunc},
-			Method: "POST",
-			Path:   router,
-			Config: &ApiConfig{},
-		}
-		if len(config) > 0 && config[0] != nil {
-			worker.Config = config[0]
-		}
-		r.handelFunctions[r.fmtHandelKey(router, "POST")] = worker
-	} else {
-		r.handelFunctions[router].Handel = append(r.handelFunctions[router].Handel, handelFunc)
-	}
-
-}
-func (r *Runner) Get(router string, handelFunc func(ctx *HttpContext) error, config ...*ApiConfig) {
-	_, ok := r.handelFunctions[r.fmtHandelKey(router, "GET")]
-	if !ok {
-		worker := &Worker{
-			Handel: []func(ctx *HttpContext) error{handelFunc},
+		worker := &routerInfo{
+			key:    key,
+			Handel: handel,
 			Method: "GET",
-			Path:   router,
+			Router: router,
 			Config: &ApiConfig{},
 		}
 		if len(config) > 0 && config[0] != nil {
 			worker.Config = config[0]
 		}
 
-		r.handelFunctions[r.fmtHandelKey(router, "GET")] = worker
+		r.routerMap[key] = worker
 	} else {
-		r.handelFunctions[router].Handel = append(r.handelFunctions[router].Handel, handelFunc)
+		r.routerMap[key].Handel = handel
+	}
+}
+
+func (r *Runner) post(router string, handel interface{}, config ...*ApiConfig) {
+	key := fmtKey(router, "POST")
+	_, ok := r.routerMap[key]
+	if !ok {
+		worker := &routerInfo{
+			key:    key,
+			Handel: handel,
+			Method: "POST",
+			Router: router,
+			Config: &ApiConfig{},
+		}
+		if len(config) > 0 && config[0] != nil {
+			worker.Config = config[0]
+		}
+
+		r.routerMap[key] = worker
+	} else {
+		r.routerMap[key].Handel = handel
 	}
 }

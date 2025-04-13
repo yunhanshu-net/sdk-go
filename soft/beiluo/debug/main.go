@@ -1,21 +1,22 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
+	"github.com/yunhanshu-net/sdk-go/model/response"
 	"github.com/yunhanshu-net/sdk-go/runner"
+	"github.com/yunhanshu-net/sdk-go/soft/beiluo/debug/version/v1/api/test"
 )
 
-type Hello struct {
+type HelloResp struct {
 	Hello string `json:"hello"`
 	World string
 }
+type HelloReq struct {
+}
 
 func main() {
-	defer func() {
-		logrus.Infof("done")
-	}()
-	runner.Get("/hello", func(ctx *runner.HttpContext) error {
-		return ctx.Response.JSON(Hello{Hello: "hello", World: "World"}).Build()
+	test.Setup()
+	runner.Get("/hello", func(ctx *runner.Context, req *HelloReq, resp response.Response) error {
+		return resp.JSON(HelloResp{Hello: "hello 12", World: "World 121"}).Build()
 	})
 	//runner.Debug("beiluo", "debug", "v1", 30, "1211")
 	runner.Run()

@@ -7,13 +7,14 @@ import (
 )
 
 type Request struct {
-	Reset   bool                `json:"reset"`
-	TraceID string              `json:"trace_id"`
-	Route   string              `json:"route"`
-	Method  string              `json:"method"`
-	Headers map[string]string   `json:"headers"`
-	Body    interface{}         `json:"body"` //请求json
-	FileMap map[string][]string `json:"file_map"`
+	Reset      bool                `json:"reset"`
+	TraceID    string              `json:"trace_id"`
+	Route      string              `json:"route"`
+	Method     string              `json:"method"`
+	Headers    map[string]string   `json:"headers"`
+	Body       interface{}         `json:"body"`        //请求json
+	BodyString string              `json:"body_string"` //请求json
+	FileMap    map[string][]string `json:"file_map"`
 }
 
 func (r *Request) DecodeJSON(obj interface{}) error {
@@ -44,6 +45,7 @@ type RunnerRequest struct {
 	TransportConfig *TransportConfig       `json:"transport_config"`
 	Metadata        map[string]interface{} `json:"metadata"`
 	Request         *Request               `json:"request"`
+	Body            string                 `json:"body"`
 }
 
 type TransportConfig struct {

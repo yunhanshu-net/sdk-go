@@ -1,6 +1,7 @@
 package response
 
 import (
+	"github.com/bytedance/sonic"
 	"net/http"
 )
 
@@ -48,7 +49,7 @@ func (j *jsonData) GetDataType() DataType {
 func (j *jsonData) Build() error {
 	j.response.DataType = j.GetDataType()
 	j.response.Multiple = false
-	j.response.Body = &rsp{
+	r := &rsp{
 		Code:     j.Code,
 		Msg:      j.Msg,
 		Data:     j.Data,
@@ -56,13 +57,11 @@ func (j *jsonData) Build() error {
 		TraceID:  j.TraceID,
 		MetaData: j.MetaData,
 	}
-	//marshal, err := sonic.Marshal(j)
-	//if err != nil {
-	//	return err
-	//}
-	//j.buildData = string(marshal)
-	//j.response.data = j
-	//j.response.Body = j.BuildJSON()
+	marshal, err := sonic.Marshal(r)
+	if err != nil {
+		return err
+	}
+	j.response.Body = string(marshal)
 	return nil
 }
 
