@@ -104,6 +104,13 @@ func (r *Runner) getRouter(router string, method string) (worker *routerInfo, ex
 func (r *Runner) runRequest(ctx0 context.Context, req *request.Request) (*response.Data, error) {
 	//worker, exist := r.getRouterWorker(ctx.Request.Route, ctx.Request.Method)
 	router, exist := r.getRouter(req.Route, req.Method)
+	defer func() {
+		errPanic := recover()
+		if errPanic != nil {
+			fmt.Println(errPanic)
+			logrus.Errorf("runRequest panic:req%+v recover:%v", req, errPanic)
+		}
+	}()
 
 	if !exist {
 		marshal, _ := json.Marshal(r.routerMap)

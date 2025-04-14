@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 	"strings"
 	"sync"
-	"time"
 )
 
 var dbLock = new(sync.Mutex)
@@ -22,17 +21,20 @@ func (c *Context) MustGetOrInitDB(dbName string) *gorm.DB {
 	dbName = strings.TrimPrefix(dbName, "../")
 	dbName = strings.TrimPrefix(dbName, "./")
 	dbName = "./data/" + dbName
-	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{
-		// 添加 PRAGMA 配置
-		DisableForeignKeyConstraintWhenMigrating: true,                                           // 可选：禁用外键约束（按需）
-		NowFunc:                                  func() time.Time { return time.Now().Local() }, // 可选：本地时间
-
-	})
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 	if err != nil {
 		logrus.Errorf("gorm Open db %s err:%s", dbName, err.Error())
 		//不必紧张，框架层面有做recover 处理，也可以自己recover来捕获错误
 		panic(fmt.Errorf("gorm Open db %s err:%s", dbName, err.Error()))
 	}
+	//db.Exec("PRAGMA journal_mode=WAL;")
+	sqlDB, err := db.DB()
+	if err != nil {
+		panic(err)
+	}
+	//sqlDB.SetMaxIdleConns(10)
+	//sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetMaxOpenConns(1)
 	dbs[dbName] = db
 	return db
 }

@@ -20,13 +20,14 @@ func (r *Runner) listen() {
 		select {
 		case <-r.down:
 			r.close()
-			logrus.Infof("%s runner closed from server", r.GetUnixPath())
+			logrus.Infof("%s runcher发起关闭请求，已经关闭连接", r.GetUnixPath())
 			return
 		case <-ticker.C:
 			if r.idle > 0 {
 				ts := time.Now().Unix()
+				d := ts - r.lastHandelTs.Unix()
 				if (ts - r.lastHandelTs.Unix()) > r.idle { //超过指定空闲时间的话需要释放进程
-					logrus.Infof("%s runner auto closed", r.GetUnixPath())
+					logrus.Infof("%s %v没有处理消息，runner 自动关闭连接 idle config：%v", r.GetUnixPath(), d, r.idle)
 					r.close()
 					return
 				}

@@ -22,7 +22,6 @@ func (r *Runner) GetUnixPath() string {
 func (r *Runner) connectRpc() error {
 	unixPath := r.GetUnixPath()
 	os.Remove(unixPath)
-	logrus.Infof("connectRpc" + unixPath)
 	s := server.NewServer()
 	rpc := &Rpc{r: r}
 	err := s.Register(rpc, "")
@@ -30,12 +29,11 @@ func (r *Runner) connectRpc() error {
 		logrus.Errorf("connectRpc err:" + err.Error())
 		return err
 	}
-	logrus.Infof("connectRpc success" + unixPath)
 	r.rpcSrv = s
 	fmt.Println("<connect-ok></connect-ok>")
 	err = s.Serve("unix", unixPath)
 	if err != nil {
-		logrus.Errorf("connectRpc err:%s", err)
+		logrus.Errorf("connectRpc Serve err:%s", err)
 	}
 	return nil
 }
@@ -68,7 +66,7 @@ func (r *Rpc) Close(ctx context.Context, req *request.RunnerRequest, response *r
 }
 
 func (r *Runner) close() error {
-	err := r.rpcSrv.SendMessage(r.rpcConn, "", "", nil, []byte(r.detail.GetUnixPath()))
+	err := r.rpcSrv.SendMessage(r.rpcConn, "", "", map[string]string{"type": "close"}, []byte("close"))
 	if err != nil {
 		return err
 	}
