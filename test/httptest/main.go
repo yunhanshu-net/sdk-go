@@ -88,7 +88,7 @@ func loadTest(url string, numRequests int, limit int) {
 func main() {
 
 	url := "http://127.0.0.1:9999/api/runner/beiluo/debug/hello"
-	numRequests := 1000
+	numRequests := 10000
 
 	loadTest(url, numRequests, 50)
 }

@@ -19,8 +19,12 @@ type Runner struct {
 	User string `json:"user"` //所属租户
 }
 
-func (r *Runner) GetSubject() string {
+func (r *Runner) GetRequestSubject() string {
 	return fmt.Sprintf("runner.%s.%s.%s.run", r.User, r.Name, r.Version)
+}
+
+func (r *Runner) GetCloseSubject() string {
+	return fmt.Sprintf("runner.close.%s.%s.%s", r.User, r.Name, r.Version)
 }
 
 func (r *Runner) GetAddr() string {

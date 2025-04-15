@@ -18,10 +18,10 @@ func (r *Runner) listen() {
 	defer ticker.Stop()
 	for {
 		select {
-		case <-r.down:
-			r.close()
-			logrus.Infof("%s runcher发起关闭请求，已经关闭连接", r.GetUnixPath())
-			return
+		//case <-r.down:
+		//	r.close()
+		//	logrus.Infof("%s runcher发起关闭请求，已经关闭连接", r.GetUnixPath())
+		//	return
 		case <-ticker.C:
 			if r.idle > 0 {
 				ts := time.Now().Unix()
@@ -46,7 +46,7 @@ func (r *Runner) Debug(user, runner, version string, idle int64, uuid string) er
 	r.detail.Version = version
 	r.idle = idle
 	go func() {
-		err := r.connectRpc()
+		err := r.connectNats()
 		if err != nil {
 			logrus.Error(err)
 		}

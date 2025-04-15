@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bytedance/sonic"
+	"github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
 	"github.com/smallnest/rpcx/server"
 	"github.com/yunhanshu-net/sdk-go/model"
@@ -35,6 +36,9 @@ type Runner struct {
 	args         []string
 	idle         int64
 	lastHandelTs time.Time
+
+	natsConn      *nats.Conn
+	natsSubscribe *nats.Subscription
 	//handelFunctions map[string]*Worker
 	routerMap map[string]*routerInfo
 	down      chan struct{}
@@ -66,7 +70,7 @@ func (r *Runner) init(args []string) error {
 			r.idle = int64(req.TransportConfig.IdleTime)
 		}
 		go func() {
-			err = r.connectRpc()
+			err = r.connectNats()
 			if err != nil {
 				logrus.Infof("connect err:%s", err.Error())
 				panic(err)
