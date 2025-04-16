@@ -37,6 +37,7 @@ type Runner struct {
 	idle         int64
 	lastHandelTs time.Time
 
+	isClosed      bool
 	natsConn      *nats.Conn
 	natsSubscribe *nats.Subscription
 	//handelFunctions map[string]*Worker

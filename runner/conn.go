@@ -157,6 +157,10 @@ func (r *Rpc) Close(ctx context.Context, req *request.RunnerRequest, response *r
 //}
 
 func (r *Runner) close() error {
+	if r.isClosed {
+		return nil
+	}
+	r.isClosed = true
 	now := time.Now()
 	subject := "close.runner"
 	newMsg := nats.NewMsg(subject)
