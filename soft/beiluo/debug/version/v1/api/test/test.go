@@ -8,6 +8,8 @@ import (
 )
 
 func init() {
+	db := runner.MustGetOrInitDB("test.db")
+	db.AutoMigrate(&Calc{})
 	runner.Get("/test/add", Add)
 	runner.Get("/test/get", Get)
 }
