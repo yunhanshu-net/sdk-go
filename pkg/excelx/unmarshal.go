@@ -19,14 +19,30 @@ func Unmarshal(filePath string, out interface{}, sheetName ...string) error {
 	sliceVal := val.Elem()
 	elemType := sliceVal.Type().Elem()
 
-	if elemType.Kind() != reflect.Struct {
-		return errors.New("目标必须是结构体切片")
+	//if elemType.Kind() != reflect.Struct {
+	//	//[]User || []*User
+	//	return errors.New("目标必须是结构体切片")
+	//}
+
+	//if !(elemType.Kind() == reflect.Struct ||
+	//	(elemType.Kind() == reflect.Ptr && elemType.Elem().Kind() == reflect.Struct)) {
+	//	return errors.New("目标必须是结构体切片或结构体指针切片")
+	//}
+
+	var structType reflect.Type
+	switch {
+	case elemType.Kind() == reflect.Struct:
+		structType = elemType
+	case elemType.Kind() == reflect.Ptr && elemType.Elem().Kind() == reflect.Struct:
+		structType = elemType.Elem()
+	default:
+		return errors.New("目标必须是结构体或结构体指针切片")
 	}
 
 	// 解析结构体标签
 	fieldMap := make(map[string]int)
-	for i := 0; i < elemType.NumField(); i++ {
-		field := elemType.Field(i)
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
 		if tag := field.Tag.Get("excel"); tag != "" {
 			fieldMap[tag] = i
 		}
@@ -77,7 +93,17 @@ func Unmarshal(filePath string, out interface{}, sheetName ...string) error {
 
 	// 处理数据行（关键修改点）
 	for rowIdx, row := range rows[1:] {
-		newElem := reflect.New(elemType).Elem()
+		//newElem := reflect.New(elemType).Elem()
+
+		var newElem reflect.Value
+		if elemType.Kind() == reflect.Ptr {
+			// 指针类型：创建结构体实例并取其地址
+			structType := elemType.Elem()
+			newElem = reflect.New(structType) // 生成 *structType
+		} else {
+			// 结构体类型：直接创建实例
+			newElem = reflect.New(elemType).Elem() // 生成 structType
+		}
 
 		for tag, fieldIndex := range fieldMap {
 			// 检查列是否存在
@@ -93,7 +119,15 @@ func Unmarshal(filePath string, out interface{}, sheetName ...string) error {
 			}
 
 			// 设置字段值
-			field := newElem.Field(fieldIndex)
+			//field := newElem.Field(fieldIndex)
+			var structVal reflect.Value
+			if elemType.Kind() == reflect.Ptr {
+				structVal = newElem.Elem() // 解引用指针
+			} else {
+				structVal = newElem
+			}
+			field := structVal.Field(fieldIndex)
+
 			if err := setValue(field, cellValue); err != nil {
 				return fmt.Errorf("第%d行[%s]解析错误: %v", rowIdx+2, tag, err)
 			}
@@ -205,8 +239,8 @@ func setZeroValue(field reflect.Value) error {
 // 时间解析示例（可根据需要扩展格式）
 func parseTime(field reflect.Value, value string) error {
 	formats := []string{
-		"2006-01-02",
 		"2006-01-02 15:04:05",
+		"2006-01-02",
 		time.RFC3339,
 	}
 
