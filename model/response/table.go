@@ -57,6 +57,11 @@ type tableData struct {
 
 func (t *tableData) Build() error {
 	sliceVal := reflect.ValueOf(t.val)
+	fmt.Println("类型", sliceVal.Kind())
+	if sliceVal.Kind() == reflect.Pointer {
+		sliceVal = sliceVal.Elem()
+	}
+	fmt.Println("类型", sliceVal.Kind())
 	if sliceVal.Kind() != reflect.Slice {
 		return fmt.Errorf("类型错误")
 	}
@@ -91,6 +96,10 @@ func (t *tableData) Build() error {
 }
 
 func (t *tableData) AutoPaginated(db *gorm.DB, model interface{}, pageInfo *request.PageInfo) Table {
+
+	if pageInfo == nil {
+		pageInfo = new(request.PageInfo)
+	}
 	// 获取分页大小
 	pageSize := pageInfo.GetLimit()
 	offset := pageInfo.GetOffset()
@@ -129,10 +138,11 @@ func (t *tableData) AutoPaginated(db *gorm.DB, model interface{}, pageInfo *requ
 
 func (t *tableData) buildJSON() error {
 	type rsp struct {
-		Code     int         `json:"code"`
-		Msg      string      `json:"msg"`
-		DataType DataType    `json:"data_type"`
-		Data     interface{} `json:"data"`
+		MetaData map[string]interface{} `json:"meta_data"`
+		Code     int                    `json:"code"`
+		Msg      string                 `json:"msg"`
+		DataType DataType               `json:"data_type"`
+		Data     interface{}            `json:"data"`
 	}
 
 	type Table struct {
@@ -147,6 +157,7 @@ func (t *tableData) buildJSON() error {
 	//Pagination pagination               `json:"pagination"`
 
 	tb := rsp{
+		MetaData: nil,
 		Code:     successCode,
 		Msg:      successMsg,
 		DataType: DataTypeTable,
@@ -176,8 +187,24 @@ func parserTableInfo(row interface{}) []column {
 	of := reflect.TypeOf(row)
 	var columns []column
 	for i := 0; i < of.NumField(); i++ {
-		kv := tagx.ParserKv(of.Field(i).Tag.Get("runner"))
-		columns = append(columns, column{Name: kv["name"], Code: kv["code"], Idx: i})
+		field := of.Field(i)
+		kv := tagx.ParserKv(field.Tag.Get("runner"))
+		name := kv["name"]
+		code := kv["code"]
+		if name == "" {
+			name = field.Tag.Get("json")
+			if name == "" {
+				name = field.Name
+			}
+		}
+		if code == "" {
+			name = field.Tag.Get("json")
+			if name == "" {
+				name = field.Name
+			}
+		}
+
+		columns = append(columns, column{Name: name, Code: code, Idx: i})
 	}
 	return columns
 }

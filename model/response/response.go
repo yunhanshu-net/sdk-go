@@ -17,6 +17,13 @@ type Data struct {
 	data       anyData
 }
 
+func (d *Data) SetMetaData(key string, value interface{}) {
+	if d.MetaData == nil {
+		d.MetaData = make(map[string]interface{})
+	}
+	d.MetaData[key] = value
+}
+
 type BizData struct {
 	MetaData map[string]interface{} `json:"meta_data"` //用户层
 	Msg      string                 `json:"msg"`

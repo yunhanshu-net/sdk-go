@@ -3,6 +3,9 @@ package tagx
 import "strings"
 
 func ParserKv(tag string) map[string]string {
+	if tag == "" {
+		return make(map[string]string)
+	}
 	mp := make(map[string]string)
 	split := strings.Split(tag, ";")
 	for _, s := range split {

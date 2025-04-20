@@ -27,7 +27,7 @@ func (r *Runner) listen() {
 				ts := time.Now().Unix()
 				d := ts - r.lastHandelTs.Unix()
 				if (ts - r.lastHandelTs.Unix()) > r.idle { //超过指定空闲时间的话需要释放进程
-					logrus.Infof("%s %v没有处理消息，runner 自动关闭连接 idle config：%v", r.GetUnixPath(), d, r.idle)
+					logrus.Infof(" %v没有处理消息，runner 自动关闭连接 idle config：%v", d, r.idle)
 					r.close()
 					return
 				}

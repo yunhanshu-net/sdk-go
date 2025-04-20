@@ -24,19 +24,14 @@ type handlerMeta struct {
 }
 
 type runtimeMeta struct {
-	fnValue reflect.Value
-	reqType reflect.Type
-	reqPool *sync.Pool
-	//resPool *sync.Pool
-	//ctxPool     *sync.Pool
-	//jsonParser  func([]byte) (interface{}, error)
+	fnValue     reflect.Value
+	reqType     reflect.Type
+	reqPool     *sync.Pool
 	hasValidate bool
 }
 
 var (
-	//handlerCache    sync.Map                        // key: string -> *handlerMeta
 	handlerCacheMap = make(map[string]*handlerMeta) // key: string -> *handlerMeta
-	//validateCache   sync.Map                        // reflect.Type -> bool
 )
 
 // 运行时构建元数据
@@ -111,18 +106,20 @@ func doCall(method string, meta *runtimeMeta, ctx *Context, resp *response.Data,
 	req := meta.reqPool.Get()
 	var err error
 
-	if method == "GET" {
+	if body != nil {
+		if method == "GET" {
 
-		query, err1 := url.ParseQuery(body.(string))
-		if err1 != nil {
-			return err1
+			query, err1 := url.ParseQuery(body.(string))
+			if err1 != nil {
+				return err1
+			}
+			err1 = form.NewDecoder().Decode(req, query)
+			if err1 != nil {
+				return err1
+			}
+		} else {
+			err = sonic.Unmarshal([]byte(body.(string)), req)
 		}
-		err1 = form.NewDecoder().Decode(req, query)
-		if err1 != nil {
-			return err1
-		}
-	} else {
-		err = sonic.Unmarshal([]byte(body.(string)), req)
 	}
 
 	// 解析请求

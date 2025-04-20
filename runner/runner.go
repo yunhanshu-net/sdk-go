@@ -14,6 +14,7 @@ import (
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
 	"net"
 	"runtime"
+	"runtime/debug"
 	"time"
 )
 
@@ -52,6 +53,8 @@ func (r *Runner) init(args []string) error {
 	r.get("/_ping", ping)
 	r.get("/_router_info", r.routerInfo)
 	r.get("/_router_list_info", r.routerListInfo)
+	r.post("/_callback", r.callback)
+
 	var err error
 	var req = new(request.RunnerRequest)
 	req, err = r.getRequest(r.args[2])
@@ -112,8 +115,9 @@ func (r *Runner) runRequest(ctx0 context.Context, req *request.Request) (*respon
 	defer func() {
 		errPanic := recover()
 		if errPanic != nil {
-			fmt.Println(errPanic)
-			logrus.Errorf("runRequest panic:req%+v recover:%v", req, errPanic)
+			stack := debug.Stack()
+			logrus.Errorf("runRequest panic err:%s req:%+v stack:%s", errPanic, req, string(stack))
+			fmt.Println(string(stack))
 		}
 	}()
 
@@ -128,11 +132,15 @@ func (r *Runner) runRequest(ctx0 context.Context, req *request.Request) (*respon
 	//if err != nil {
 	//	return nil, err
 	//}
+	now := time.Now()
 	_, rsp, err := router.call(ctx0, req.Body)
 	if err != nil {
 		logrus.Errorf("runRequest err:%s", err.Error())
 		return nil, err
 	}
+	since := time.Since(now)
+	rsp.SetMetaData("cost", since.String())
+
 	//ctx.Response = rsp
 	//todo 判断是否需要reset body
 

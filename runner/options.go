@@ -49,6 +49,23 @@ type ApiConfig struct {
 	Request  interface{} `json:"-"`
 	Response interface{} `json:"-"`
 
+	OnPageLoad OnPageLoad `json:"-"`
+
+	OnApiCreated    OnApiCreated    `json:"-"`
+	BeforeApiDelete BeforeApiDelete `json:"-"`
+	AfterApiDeleted AfterApiDeleted `json:"-"`
+
+	BeforeRunnerClose BeforeRunnerClose `json:"-"`
+	AfterRunnerClose  AfterRunnerClose  `json:"-"`
+	OnVersionChange   OnVersionChange   `json:"-"`
+
+	OnInputFuzzy    OnInputFuzzy    `json:"-"`
+	OnInputValidate OnInputValidate `json:"-"`
+
+	OnTableDeleteRows OnTableDeleteRows `json:"-"`
+	OnTableUpdateRow  OnTableUpdateRow  `json:"-"`
+	OnTableSearch     OnTableSearch     `json:"-"`
+
 	//假如该接口有对应的前端界面，渲染该界面后会调用该函数来加载默认请求数据，
 	//比如一个用户订单列表的页面，在点进去页面后会调用该回调
 	//此时已经知道是哪个用户的了，然后可以根据用户信息，展示该用户的默认数据。

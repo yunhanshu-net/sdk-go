@@ -9,6 +9,12 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
+// 字段信息结构
+type structFieldInfo struct {
+	index     int          // 字段索引
+	fieldType reflect.Type // 字段类型
+}
+
 // Marshal 将结构体切片或指针切片写入Excel文件
 // 参数说明：
 //   - filePath:  输出的Excel文件路径
@@ -104,7 +110,6 @@ func Marshal(filePath string, data interface{}, sheetName ...string) error {
 func parseStructFields(structType reflect.Type) ([]string, []structFieldInfo, error) {
 	var headers []string
 	var fieldInfos []structFieldInfo
-
 	// 遍历所有字段获取excel标签
 	for i := 0; i < structType.NumField(); i++ {
 		field := structType.Field(i)
@@ -112,25 +117,13 @@ func parseStructFields(structType reflect.Type) ([]string, []structFieldInfo, er
 		if tag == "" {
 			continue // 跳过无标签字段
 		}
-
 		headers = append(headers, tag)
-		fieldInfos = append(fieldInfos, structFieldInfo{
-			index:     i,
-			fieldType: field.Type,
-		})
+		fieldInfos = append(fieldInfos, structFieldInfo{index: i, fieldType: field.Type})
 	}
-
 	if len(headers) == 0 {
 		return nil, nil, errors.New("结构体中未找到excel标签字段")
 	}
-
 	return headers, fieldInfos, nil
-}
-
-// 字段信息结构
-type structFieldInfo struct {
-	index     int          // 字段索引
-	fieldType reflect.Type // 字段类型
 }
 
 // 获取字段字符串表示
