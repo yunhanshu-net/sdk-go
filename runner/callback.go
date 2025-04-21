@@ -35,19 +35,38 @@ const (
 // OnPageLoad 当用户进入某个函数的页面后，函数默认调用的行为，用户可以通过这个来初始化表单数据，resetRequest可以返回初始化后的表单数据
 type OnPageLoad func(ctx *Context) (resetRequest interface{}, resp interface{}, err error)
 
+// OnApiCreated 创建新的api时候的回调函数,新增一个api假如新增了一张user表， 可以在这里用gorm的db.AutoMigrate(&User)来创建表，
+// 保证新版本的api可以正常使用新增的表 这个api只会在我创建这个api的时候执行一次
 type OnApiCreated func(ctx *Context, req *request.OnApiCreated) error
+
+// BeforeApiDelete  api删除前触发回调，比如该api删除的话，可以备份某些数据
 type BeforeApiDelete func(ctx *Context, req *request.BeforeApiDelete) error
+
+// AfterApiDeleted  api删除后触发回调，比如该api删除的话，可以在这里做一些操作，比如删除该api对应的表
 type AfterApiDeleted func(ctx *Context, req *request.AfterApiDeleted) error
 
+// BeforeRunnerClose 程序结束前的回调函数，可以在程序结束前做一些操作，比如上报一些数据
 type BeforeRunnerClose func(ctx *Context, req *request.BeforeRunnerClose) error
+
+// AfterRunnerClose 程序结束后的回调函数，可以在程序结束后做一些操作，比如清理某些文件
 type AfterRunnerClose func(ctx *Context, req *request.AfterRunnerClose) error
+
+// OnVersionChange 每次版本发生变更都会回调这个函数（新增/删除api）
 type OnVersionChange func(ctx *Context, req *request.OnVersionChange) error
 
+// OnInputFuzzy 模糊搜索回调函数，比如搜索用户，可以在这里做一些操作，比如根据用户名模糊搜索用户，然后返回用户列表
 type OnInputFuzzy func(ctx *Context, req *request.OnInputFuzzy) (*response.OnInputFuzzy, error)
+
+// OnInputValidate 验证输入框输入的名称是否重复或者输入是否合法
 type OnInputValidate func(ctx *Context, req *request.OnInputValidate) (*response.OnInputValidate, error)
 
+// OnTableDeleteRows 当返回前端的数据是table类型时候，前端会把数据渲染成表格，这时候表格数据会有删除的行为，实现这个函数用来删除数据
 type OnTableDeleteRows func(ctx *Context, req *request.OnTableDeleteRows) (*response.OnTableDeleteRows, error)
+
+// OnTableUpdateRow 当返回前端的数据是table类型时候，前端会把数据渲染成表格，这时候表格数据会有更新的行为，实现这个函数用来更新数据
 type OnTableUpdateRow func(ctx *Context, req *request.OnTableUpdateRow) (*response.OnTableUpdateRow, error)
+
+// OnTableSearch 当返回前端的数据是table类型时候，前端会把数据渲染成表格，这时候表格数据会有搜索的行为，实现这个函数用来搜索数据
 type OnTableSearch func(ctx *Context, req *request.OnTableSearch) (*response.OnTableSearch, error)
 
 func (r *Runner) callback(ctx *Context, req *request.Callback, resp response.Response) (err error) {

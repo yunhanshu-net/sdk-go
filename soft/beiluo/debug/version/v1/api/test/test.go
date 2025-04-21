@@ -8,7 +8,6 @@ import (
 )
 
 func init() {
-	//db := runner.MustGetOrInitDB("test.db") //这里返回的是*gorm.DB
 	getConfig := &runner.ApiConfig{
 		OnApiCreated: func(ctx *runner.Context, req *request.OnApiCreated) error {
 			db := runner.MustGetOrInitDB("test.db")

@@ -3,15 +3,18 @@ package request
 import "encoding/json"
 
 type OnApiCreated struct {
-}
-
-type AfterApiDelete struct {
+	Method string `json:"method"`
+	Router string `json:"router"`
 }
 
 type BeforeApiDelete struct {
+	Method string `json:"method"`
+	Router string `json:"router"`
 }
 
 type AfterApiDeleted struct {
+	Method string `json:"method"`
+	Router string `json:"router"`
 }
 
 type BeforeRunnerClose struct {
@@ -20,7 +23,14 @@ type BeforeRunnerClose struct {
 type AfterRunnerClose struct {
 }
 
+type Change struct {
+	Method string `json:"method"`
+	Router string `json:"router"`
+	Type   string `json:"type"`
+}
+
 type OnVersionChange struct {
+	Change []Change `json:"change"`
 }
 
 type OnInputFuzzy struct {
@@ -29,6 +39,8 @@ type OnInputFuzzy struct {
 }
 
 type OnInputValidate struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type OnTableDeleteRows struct {
