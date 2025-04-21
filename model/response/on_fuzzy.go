@@ -5,6 +5,7 @@ type OnInputFuzzy struct {
 }
 
 type OnInputValidate struct {
+	Msg string `json:"msg"`
 }
 
 type OnTableDeleteRows struct {
