@@ -79,7 +79,6 @@ func CreateTask(ctx *runner.Context, req *TaskRequest, resp response.Response) e
 		logrus.Errorf("创建任务失败: %v", err)
 		return err
 	}
-	resp.Form().Build()
 	return resp.JSON(task).Build()
 }
 
