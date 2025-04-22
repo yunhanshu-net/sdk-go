@@ -20,6 +20,12 @@ func (r *Data) JSON(data interface{}) JSON {
 	r.StatusCode = http.StatusOK
 	return bz
 }
+func (r *Data) Form(data interface{}) JSON {
+	r.DataType = DataTypeJSON
+	bz := &jsonData{Msg: successMsg, Code: successCode, Data: data, response: r}
+	r.StatusCode = http.StatusOK
+	return bz
+}
 
 func (r *Data) FailWithJSON(data interface{}, msg string, meta ...map[string]interface{}) error {
 	r.DataType = DataTypeJSON

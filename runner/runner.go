@@ -7,12 +7,10 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
-	"github.com/smallnest/rpcx/server"
 	"github.com/yunhanshu-net/sdk-go/model"
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
-	"net"
 	"runtime"
 	"runtime/debug"
 	"time"
@@ -29,21 +27,17 @@ func New() *Runner {
 }
 
 type Runner struct {
-	rpcConn      net.Conn
-	isDebug      bool
-	detail       *model.Runner
-	uuid         string
-	rpcSrv       *server.Server
-	args         []string
-	idle         int64
-	lastHandelTs time.Time
-
+	isDebug       bool
+	detail        *model.Runner
+	uuid          string
+	args          []string
+	idle          int64
+	lastHandelTs  time.Time
 	isClosed      bool
 	natsConn      *nats.Conn
 	natsSubscribe *nats.Subscription
-	//handelFunctions map[string]*Worker
-	routerMap map[string]*routerInfo
-	down      chan struct{}
+	routerMap     map[string]*routerInfo
+	down          chan struct{}
 }
 
 func (r *Runner) init(args []string) error {

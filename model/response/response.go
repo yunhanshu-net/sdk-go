@@ -1,6 +1,7 @@
 package response
 
 type Response interface {
+	Form(data interface{}) JSON
 	JSON(data interface{}) JSON
 	FailWithJSON(data interface{}, msg string, meta ...map[string]interface{}) error
 	Table(dataList interface{}, desc ...string) Table
