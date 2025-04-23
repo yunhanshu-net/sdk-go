@@ -46,6 +46,9 @@ type ApiConfig struct {
 	ParamsIn    []FuncParam `json:"params_in"`
 	ParamsOut   []FuncParam `json:"params_out"`
 
+	//form，table，
+	Render string `json:"render"`
+
 	UseTables []interface{} `json:"use_tables"` //这里注册使用到的数据表
 
 	Request  interface{} `json:"-"`

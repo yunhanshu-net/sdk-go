@@ -22,13 +22,13 @@ func ParserKv(tag string) map[string]string {
 }
 
 type FieldInfo struct {
-	Name  string            // 字段名（含匿名字段层级，如"User.ID"）
-	Type  reflect.Type      // 字段类型
-	Tags  map[string]string // 解析后的标签键值对
-	Index []int             // 字段索引路径（用于反射）
+	Name  string              // 字段名（含匿名字段层级，如"User.ID"）
+	Type  reflect.StructField // 字段类型
+	Tags  map[string]string   // 解析后的标签键值对
+	Index []int               // 字段索引路径（用于反射）
 }
 
-func ParseStructFields(obj interface{}, tagKey string) ([]FieldInfo, error) {
+func ParseStructFields(obj interface{}, tagKey string) ([]*FieldInfo, error) {
 	t := reflect.TypeOf(obj)
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
@@ -39,9 +39,20 @@ func ParseStructFields(obj interface{}, tagKey string) ([]FieldInfo, error) {
 	return parseFields(t, tagKey, nil, nil), nil
 }
 
+func ParseStructFieldsTypeOf(obj reflect.Type, tagKey string) ([]*FieldInfo, error) {
+	//t := reflect.TypeOf(obj)
+	//if t.Kind() == reflect.Ptr {
+	//	t = t.Elem()
+	//}
+	//if t.Kind() != reflect.Struct {
+	//	return nil, fmt.Errorf("input must be a struct")
+	//}
+	return parseFields(obj, tagKey, nil, nil), nil
+}
+
 // 递归解析字段，处理匿名字段
-func parseFields(t reflect.Type, tagKey string, parentIndex []int, parentNames []string) []FieldInfo {
-	var fields []FieldInfo
+func parseFields(t reflect.Type, tagKey string, parentIndex []int, parentNames []string) []*FieldInfo {
+	var fields []*FieldInfo
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -56,9 +67,9 @@ func parseFields(t reflect.Type, tagKey string, parentIndex []int, parentNames [
 		}
 
 		// 普通字段：生成FieldInfo
-		info := FieldInfo{
+		info := &FieldInfo{
 			Name:  strings.Join(currentNames, "."), // 生成层级字段名
-			Type:  field.Type,
+			Type:  field,
 			Tags:  parseTag(field.Tag.Get(tagKey)),
 			Index: currentIndex,
 		}

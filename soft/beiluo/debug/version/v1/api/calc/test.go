@@ -85,6 +85,7 @@ type AddReq struct {
 	B        int    `json:"b" form:"b"`
 	Code     string `json:"code" form:"code"`
 }
+
 type GetReq struct {
 	ID int `json:"id" form:"id"`
 	*request.PageInfo
