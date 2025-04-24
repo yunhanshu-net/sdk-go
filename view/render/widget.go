@@ -3,7 +3,6 @@ package render
 import (
 	"fmt"
 	"github.com/yunhanshu-net/sdk-go/pkg/tagx"
-	"github.com/yunhanshu-net/sdk-go/view/widget/input"
 )
 
 func NewWidget(info *tagx.FieldInfo) (Widget, error) {
@@ -17,7 +16,7 @@ func NewWidget(info *tagx.FieldInfo) (Widget, error) {
 
 	switch widgetType {
 	case WidgetInput:
-		return input.newInputWidget(info)
+		return newInputWidget(info)
 	case WidgetCheckbox:
 		return newCheckboxWidget(info)
 	case WidgetRadio:
@@ -31,5 +30,5 @@ func NewWidget(info *tagx.FieldInfo) (Widget, error) {
 	case WidgetFile:
 		return newFileWidget(info)
 	}
-	return input.newInputWidget(info)
+	return newInputWidget(info)
 }
