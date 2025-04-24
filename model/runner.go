@@ -22,35 +22,3 @@ type Runner struct {
 func (r *Runner) GetRequestSubject() string {
 	return fmt.Sprintf("runner.%s.%s.%s.run", r.User, r.Name, r.Version)
 }
-
-func (r *Runner) GetCloseSubject() string {
-	return fmt.Sprintf("runner.close.%s.%s.%s", r.User, r.Name, r.Version)
-}
-
-func (r *Runner) GetAddr() string {
-	return fmt.Sprintf("unix.%s.%s.%s", r.User, r.Name, r.Version)
-}
-func (r *Runner) GetUnixPath() string {
-	return fmt.Sprintf("%s_%s_%s.sock", r.User, r.Name, r.Version)
-}
-
-func (r *Runner) Check() error {
-	if r.Name == "" {
-		return fmt.Errorf("name 不能为空")
-	}
-	if r.Version == "" {
-		return fmt.Errorf("version 不能为空")
-	}
-
-	if r.User == "" {
-		return fmt.Errorf("user 不能为空")
-	}
-	return nil
-}
-
-type UpdateVersion struct {
-	RunnerConf *Runner `json:"runner_conf"`
-	OldVersion string  `json:"old_version"`
-	//NewVersion        string  `json:"new_version"`
-	//NewVersionOssPath string  `json:"new_version_oss_path"`
-}

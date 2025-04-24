@@ -65,18 +65,6 @@ func buildRuntimeMeta(fn interface{}) (*runtimeMeta, error) {
 				return reflect.New(reqType.Elem()).Interface()
 			},
 		},
-		//resPool: &sync.Pool{
-		//	New: func() interface{} {
-		//		return &response.Data{}
-		//	},
-		//},
-		//ctxPool: &sync.Pool{
-		//	New: func() interface{} {
-		//		return &Context{
-		//			Context: context.Background(),
-		//		}
-		//	},
-		//},
 	}
 
 	// 预生成JSON解析器

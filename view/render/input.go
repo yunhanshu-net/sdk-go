@@ -1,6 +1,8 @@
 package render
 
-import "github.com/yunhanshu-net/sdk-go/pkg/tagx"
+import (
+	"github.com/yunhanshu-net/sdk-go/pkg/tagx"
+)
 
 // InputWidget 输入框组件
 type InputWidget struct {

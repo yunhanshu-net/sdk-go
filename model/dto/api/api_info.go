@@ -3,60 +3,11 @@ package api
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"github.com/yunhanshu-net/sdk-go/model/render"
 	"github.com/yunhanshu-net/sdk-go/pkg/tagx"
+	render2 "github.com/yunhanshu-net/sdk-go/view/render"
 	"reflect"
 	"strings"
 )
-
-func newParamInfo(tag *tagx.FieldInfo) (*ParamInfo, error) {
-	p := &ParamInfo{
-		Code: tag.Tags["code"],
-		Name: tag.Tags["name"],
-		Desc: tag.Tags["desc"],
-	}
-
-	required, ok := tag.Tags["required"]
-	if ok {
-		if required == "" {
-			p.Required = true
-		} else {
-			p.Required = required == "true"
-		}
-		return p, nil
-	}
-
-	if p.Code == "" {
-		get := tag.Type.Tag.Get("json")
-		if get != "" {
-			p.Code = strings.Split(get, ",")[0]
-		}
-	}
-
-	if p.Name == "" {
-		p.Name = p.Code
-	}
-	widget, err := render.NewWidget(tag)
-	if err != nil {
-		return nil, err
-	}
-	p.Widget = widget
-	return p, nil
-}
-
-func NewParams(fields []*tagx.FieldInfo, t string) (*Params, error) {
-	//	判断不同数据类型form,table,echarts,bi,3D ....
-	children := make([]*ParamInfo, 0, len(fields))
-	for _, field := range fields {
-		info, err := newParamInfo(field)
-		if err != nil {
-			return nil, err
-		}
-		children = append(children, info)
-	}
-
-	return &Params{RenderType: t, Children: children}, nil
-}
 
 func NewRequestParams(el interface{}, t string) (*Params, error) {
 	typeOf := reflect.TypeOf(el)
@@ -102,7 +53,7 @@ func NewResponseParams(el interface{}, t string) (*Params, error) {
 		if err != nil {
 			return nil, err
 		}
-		paramsOut, err := NewParams(resFields, t)
+		paramsOut, err := newParams(resFields, t)
 		if err != nil {
 			return nil, err
 		}
@@ -116,12 +67,60 @@ func NewResponseParams(el interface{}, t string) (*Params, error) {
 		if err != nil {
 			return nil, err
 		}
-		paramsOut, err := NewParams(of, t)
+		paramsOut, err := newParams(of, t)
 		if err != nil {
 			return nil, err
 		}
 		return paramsOut, nil
 	}
+}
+func newParamInfo(tag *tagx.FieldInfo) (*ParamInfo, error) {
+	p := &ParamInfo{
+		Code: tag.Tags["code"],
+		Name: tag.Tags["name"],
+		Desc: tag.Tags["desc"],
+	}
+
+	required, ok := tag.Tags["required"]
+	if ok {
+		if required == "" {
+			p.Required = true
+		} else {
+			p.Required = required == "true"
+		}
+		return p, nil
+	}
+
+	if p.Code == "" {
+		get := tag.Type.Tag.Get("json")
+		if get != "" {
+			p.Code = strings.Split(get, ",")[0]
+		}
+	}
+
+	if p.Name == "" {
+		p.Name = p.Code
+	}
+	widget, err := render2.NewWidget(tag)
+	if err != nil {
+		return nil, err
+	}
+	p.Widget = widget
+	return p, nil
+}
+
+func newParams(fields []*tagx.FieldInfo, t string) (*Params, error) {
+	//	判断不同数据类型form,table,echarts,bi,3D ....
+	children := make([]*ParamInfo, 0, len(fields))
+	for _, field := range fields {
+		info, err := newParamInfo(field)
+		if err != nil {
+			return nil, err
+		}
+		children = append(children, info)
+	}
+
+	return &Params{RenderType: t, Children: children}, nil
 }
 
 type Params struct {
@@ -141,7 +140,7 @@ type ParamInfo struct {
 	//是否必填
 	Required bool `json:"required,omitempty"`
 
-	Widget render.Widget `json:"widget"`
+	Widget render2.Widget `json:"widget"`
 }
 
 type Info struct {

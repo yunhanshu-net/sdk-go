@@ -17,38 +17,6 @@ func ping(ctx *Context, req *request.NoData, resp response.Response) error {
 	return resp.JSON(map[string]string{"ping": "pong"}).Build()
 }
 
-//func (r *Runner) routerListInfo(ctx *Context, req *request.NoData, resp response.Response) error {
-//	functions := r.routerMap
-//	var configs []*ApiConfig
-//	for _, worker := range functions {
-//		if worker.IsDefaultRouter() {
-//			continue
-//		}
-//		worker.Config.Method = worker.Method
-//		worker.Config.Router = worker.Router
-//		if worker.Config != nil {
-//			if worker.Config.Request != nil {
-//				params, err := worker.Config.getParams(worker.Config.Request, "in")
-//				if err != nil {
-//					continue
-//				}
-//				worker.Config.ParamsIn = params
-//			}
-//
-//			if worker.Config.Response != nil {
-//				params, err := worker.Config.getParams(worker.Config.Response, "out")
-//				if err != nil {
-//					continue
-//				}
-//				worker.Config.ParamsOut = params
-//			}
-//			configs = append(configs, worker.Config)
-//		}
-//	}
-//
-//	return resp.JSON(configs).Build()
-//}
-
 // buildApiInfo 从路由信息构建API信息
 func (r *Runner) buildApiInfo(worker *routerInfo) (*api.Info, error) {
 	config := worker.Config
@@ -198,64 +166,3 @@ func getCallbacks(config *ApiConfig) []string {
 
 	return callbacks
 }
-
-// 获取单个API的信息
-//func (r *Runner) getApiInfo(ctx *Context, req *ApiInfoRequest, resp response.Response) error {
-//	// 参数验证
-//	if req.Router == "" {
-//		return resp.FailWithJSON(nil, "router参数不能为空")
-//	}
-//
-//	// 如果没有指定Method，默认为GET
-//	if req.Method == "" {
-//		req.Method = "GET"
-//	}
-//
-//	// 获取指定的路由信息
-//	worker, exist := r.getRouter(req.Router, req.Method)
-//	if !exist {
-//		return resp.FailWithJSON(nil, fmt.Sprintf("未找到路由: %s [%s]", req.Router, req.Method))
-//	}
-//
-//	config := worker.Config
-//	if config == nil {
-//		return resp.FailWithJSON(nil, "路由配置为空")
-//	}
-//
-//	// 构建API信息
-//	apiInfo := &api.Info{
-//		Method:      worker.Method,
-//		Router:      worker.Router,
-//		User:        r.detail.User,
-//		Runner:      r.detail.Name,
-//		ApiDesc:     config.ApiDesc,
-//		Labels:      config.Labels,
-//		ChineseName: config.ChineseName,
-//		EnglishName: config.EnglishName,
-//	}
-//
-//	// 获取请求参数信息
-//	params, err := api.NewRequestParams(config.Request, config.RenderType)
-//	if err != nil {
-//		return err
-//	}
-//	apiInfo.ParamsIn = params
-//
-//	// 获取响应参数信息
-//	responseParams, err := api.NewResponseParams(config.Response, config.RenderType)
-//	if err != nil {
-//		return err
-//	}
-//	apiInfo.ParamsOut = responseParams
-//
-//	// 获取数据表信息
-//	for _, table := range config.UseTables {
-//		if tb, ok := table.(schema.Tabler); ok {
-//			apiInfo.UseTables = append(apiInfo.UseTables, tb.TableName())
-//		}
-//	}
-//	// 获取回调函数信息
-//	apiInfo.Callbacks = getCallbacks(config)
-//	// 返回API信息
-//	return resp.JSON(apiInfo).Build()
-//}
