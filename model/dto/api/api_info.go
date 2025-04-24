@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/yunhanshu-net/sdk-go/model/render"
 	"github.com/yunhanshu-net/sdk-go/pkg/tagx"
 	"reflect"
@@ -59,6 +60,10 @@ func NewParams(fields []*tagx.FieldInfo, t string) (*Params, error) {
 
 func NewRequestParams(el interface{}, t string) (*Params, error) {
 	typeOf := reflect.TypeOf(el)
+	logrus.Info("typeOf: kind", typeOf.Kind())
+	if typeOf.Kind() == reflect.Pointer {
+		typeOf = typeOf.Elem()
+	}
 	if typeOf.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("输入参数仅支持Struct类型")
 	}
@@ -84,7 +89,11 @@ func NewRequestParams(el interface{}, t string) (*Params, error) {
 func NewResponseParams(el interface{}, t string) (*Params, error) {
 
 	rspType := reflect.TypeOf(el)
-	if rspType.Kind() != reflect.Struct || rspType.Kind() != reflect.Slice {
+	logrus.Info("rspType: kind", rspType.Kind())
+	if rspType.Kind() == reflect.Pointer {
+		rspType = rspType.Elem()
+	}
+	if rspType.Kind() != reflect.Struct && rspType.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("输出参数仅支持Struct和Slice类型")
 	}
 

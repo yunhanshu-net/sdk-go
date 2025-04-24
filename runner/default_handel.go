@@ -5,6 +5,7 @@ import (
 	"github.com/yunhanshu-net/sdk-go/model/dto/api"
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
+	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
 	"gorm.io/gorm/schema"
 )
 
@@ -67,19 +68,23 @@ func (r *Runner) buildApiInfo(worker *routerInfo) (*api.Info, error) {
 		EnglishName: config.EnglishName,
 	}
 
-	// 获取请求参数信息
-	params, err := api.NewRequestParams(config.Request, config.RenderType)
-	if err != nil {
-		return nil, err
+	if config.Request != nil {
+		// 获取请求参数信息
+		params, err := api.NewRequestParams(config.Request, config.RenderType)
+		if err != nil {
+			return nil, err
+		}
+		apiInfo.ParamsIn = params
 	}
-	apiInfo.ParamsIn = params
 
-	// 获取响应参数信息
-	responseParams, err := api.NewResponseParams(config.Response, config.RenderType)
-	if err != nil {
-		return nil, err
+	if config.Response != nil {
+		// 获取响应参数信息
+		responseParams, err := api.NewResponseParams(config.Response, config.RenderType)
+		if err != nil {
+			return nil, err
+		}
+		apiInfo.ParamsOut = responseParams
 	}
-	apiInfo.ParamsOut = responseParams
 
 	// 获取数据表信息
 	for _, table := range config.UseTables {
@@ -97,13 +102,14 @@ func (r *Runner) buildApiInfo(worker *routerInfo) (*api.Info, error) {
 func (r *Runner) getApiInfos(ctx *Context, req *request.NoData, resp response.Response) error {
 	functions := r.routerMap
 	var apis []*api.Info
+	fmt.Println("routerMap:", jsonx.String(r.routerMap))
 	for _, worker := range functions {
 		if worker.IsDefaultRouter() {
 			continue
 		}
-
 		apiInfo, err := r.buildApiInfo(worker)
 		if err != nil {
+			fmt.Println("apiInfo err:", err)
 			continue // 跳过有错误的API
 		}
 

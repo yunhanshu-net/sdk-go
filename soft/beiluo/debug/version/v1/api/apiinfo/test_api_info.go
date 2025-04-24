@@ -52,7 +52,7 @@ type TestResponse struct {
 
 func init() {
 	// 创建一个包含各种回调函数的API配置
-	testConfig := &runner.ApiConfig{
+	listConfig := &runner.ApiConfig{
 		ChineseName: "API信息测试",
 		EnglishName: "apiInfoTest",
 		ApiDesc:     "用于测试getApiInfos功能的API",
@@ -131,12 +131,37 @@ func init() {
 			return nil, nil
 		},
 	}
-
+	createConfig := &runner.ApiConfig{
+		ChineseName: "创建API信息",
+		EnglishName: "createApiInfo",
+		ApiDesc:     "创建新的API信息记录",
+		Tags:        "测试;API信息",
+		UseTables:   []interface{}{&TestModel{}},
+		Request:     &TestRequest{},
+		Response:    &TestResponse{},
+	}
+	updateConfig := &runner.ApiConfig{
+		ChineseName: "更新API信息",
+		EnglishName: "updateApiInfo",
+		ApiDesc:     "更新已有的API信息记录",
+		Tags:        "测试;API信息",
+		UseTables:   []interface{}{&TestModel{}},
+		Request:     &TestRequest{},
+		Response:    &TestResponse{},
+	}
+	deleteConfig := &runner.ApiConfig{
+		ChineseName: "删除API信息",
+		EnglishName: "deleteApiInfo",
+		ApiDesc:     "删除API信息记录",
+		Tags:        "测试;API信息",
+		UseTables:   []interface{}{&TestModel{}},
+		Request:     &TestRequest{},
+	}
 	// 注册API路由
-	runner.Get("/apiinfo/list", ListItems, testConfig)
-	runner.Post("/apiinfo/create", CreateItem, testConfig)
-	runner.Post("/apiinfo/update", UpdateItem, testConfig)
-	runner.Post("/apiinfo/delete", DeleteItem, testConfig)
+	runner.Get("/apiinfo/list", ListItems, listConfig)
+	runner.Post("/apiinfo/create", CreateItem, createConfig)
+	runner.Post("/apiinfo/update", UpdateItem, updateConfig)
+	runner.Post("/apiinfo/delete", DeleteItem, deleteConfig)
 }
 
 // ListItems 列出所有项目

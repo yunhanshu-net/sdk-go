@@ -13,6 +13,7 @@ import (
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
 	"runtime"
 	"runtime/debug"
+	"strings"
 	"time"
 )
 
@@ -42,6 +43,14 @@ type Runner struct {
 
 func (r *Runner) init(args []string) error {
 	r.args = args
+	r.detail = &model.Runner{}
+	split := strings.Split(r.args[0], "_")
+	if len(split) > 1 {
+		r.detail.User = strings.ReplaceAll(split[0], "./", "")
+		r.detail.Name = split[1]
+	}
+	fmt.Println("detail:", r.detail)
+
 	runtime.GOMAXPROCS(2)
 	r.get("/_env", env)
 	r.get("/_ping", ping)
@@ -112,6 +121,8 @@ func (r *Runner) runRequest(ctx0 context.Context, req *request.Request) (*respon
 		errPanic := recover()
 		if errPanic != nil {
 			stack := debug.Stack()
+			// 增加更详细的错误信息输出
+			fmt.Printf("具体错误: %v\n", errPanic)
 			logrus.Errorf("runRequest panic err:%s req:%+v stack:%s", errPanic, req, string(stack))
 			fmt.Println(string(stack))
 		}

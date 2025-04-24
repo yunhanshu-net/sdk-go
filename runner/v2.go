@@ -139,6 +139,9 @@ func doCall(method string, meta *runtimeMeta, ctx *Context, resp *response.Data,
 	if resp == nil {
 		resp = new(response.Data)
 	}
+	fmt.Println("meta:", meta)
+	fmt.Println("meta.fnValue:", meta.fnValue)
+
 	// 反射调用
 	results := meta.fnValue.Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(req), reflect.ValueOf(resp)})
 	if err := results[0].Interface(); err != nil {
