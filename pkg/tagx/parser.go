@@ -50,6 +50,25 @@ func ParseStructFieldsTypeOf(obj reflect.Type, tagKey string) ([]*FieldInfo, err
 	return parseFields(obj, tagKey, nil, nil), nil
 }
 
+func GetSliceElementType(slice interface{}) (tp reflect.Type, err error) {
+	t := reflect.TypeOf(slice)
+	if t.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("input must be a slice")
+	}
+
+	// 获取切片元素的类型
+	elementType := t.Elem()
+
+	// 如果是指针类型，可以进一步获取指向的类型
+	if elementType.Kind() == reflect.Ptr {
+		elementType = elementType.Elem()
+	}
+	if elementType.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("input must be a struct")
+	}
+	return elementType, nil
+}
+
 // 递归解析字段，处理匿名字段
 func parseFields(t reflect.Type, tagKey string, parentIndex []int, parentNames []string) []*FieldInfo {
 	var fields []*FieldInfo

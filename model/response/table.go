@@ -14,8 +14,8 @@ type Table interface {
 	AutoPaginated(dbAndWhere *gorm.DB, model interface{}, pageInfo *request.PageInfo) Table
 }
 
-// Paginated 分页查询结果结构体
-type Paginated struct {
+// paginated 分页查询结果结构体
+type paginated struct {
 	CurrentPage int `json:"current_page"` // 当前页码
 	TotalCount  int `json:"total_count"`  // 总数据量
 	TotalPages  int `json:"total_pages"`  // 总页数
@@ -32,7 +32,7 @@ func (r *Data) Table(resultList interface{}, title ...string) Table {
 		val:        resultList,
 		response:   r,
 		title:      titleStr,
-		pagination: &Paginated{},
+		pagination: &paginated{},
 	}
 }
 
@@ -41,12 +41,28 @@ type column struct {
 	Name string `json:"name"`
 	Code string `json:"code"`
 }
+
+type tableResp struct {
+	MetaData map[string]interface{} `json:"meta_data"`
+	Code     int                    `json:"code"`
+	Msg      string                 `json:"msg"`
+	DataType DataType               `json:"data_type"`
+	Data     interface{}            `json:"data"`
+}
+
+type table struct {
+	Title      string                   `json:"title"`
+	Column     []column                 `json:"column"`
+	Values     map[string][]interface{} `json:"values"`
+	Pagination paginated                `json:"pagination"`
+}
+
 type tableData struct {
 	TraceID    string `json:"trace_id"`
 	error      error
 	title      string
 	response   *Data
-	pagination *Paginated
+	pagination *paginated
 	val        interface{}
 	columns    []column
 	values     map[string][]interface{}
@@ -127,7 +143,7 @@ func (t *tableData) AutoPaginated(db *gorm.DB, model interface{}, pageInfo *requ
 	}
 
 	// 构造分页结果
-	t.pagination = &Paginated{
+	t.pagination = &paginated{
 		CurrentPage: pageInfo.Page,
 		TotalCount:  int(totalCount),
 		TotalPages:  totalPages,
@@ -137,31 +153,12 @@ func (t *tableData) AutoPaginated(db *gorm.DB, model interface{}, pageInfo *requ
 }
 
 func (t *tableData) buildJSON() error {
-	type rsp struct {
-		MetaData map[string]interface{} `json:"meta_data"`
-		Code     int                    `json:"code"`
-		Msg      string                 `json:"msg"`
-		DataType DataType               `json:"data_type"`
-		Data     interface{}            `json:"data"`
-	}
-
-	type Table struct {
-		Title      string                   `json:"title"`
-		Column     []column                 `json:"column"`
-		Values     map[string][]interface{} `json:"values"`
-		Pagination Paginated                `json:"pagination"`
-	}
-	//Title      string                   `json:"title"`
-	//Column     []column                 `json:"column"`
-	//Values     map[string][]interface{} `json:"values"`
-	//Pagination pagination               `json:"pagination"`
-
-	tb := rsp{
+	tb := tableResp{
 		MetaData: nil,
 		Code:     successCode,
 		Msg:      successMsg,
 		DataType: DataTypeTable,
-		Data: Table{
+		Data: table{
 			Title:      t.title,
 			Column:     t.columns,
 			Values:     t.values,

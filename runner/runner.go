@@ -45,8 +45,10 @@ func (r *Runner) init(args []string) error {
 	runtime.GOMAXPROCS(2)
 	r.get("/_env", env)
 	r.get("/_ping", ping)
-	r.get("/_router_info", r.routerInfo)
-	r.get("/_router_list_info", r.routerListInfo)
+	//r.get("/_router_info", r.routerInfo)
+	//r.get("/_router_list_info", r.routerListInfo)
+	r.get("/_get_api_infos", r.getApiInfos)
+	r.get("/_get_api_info", r.getApiInfo) // 添加新的路由
 	r.post("/_callback", r.callback)
 
 	var err error
@@ -133,8 +135,10 @@ func (r *Runner) runRequest(ctx0 context.Context, req *request.Request) (*respon
 		return nil, err
 	}
 	since := time.Since(now)
-	rsp.SetMetaData("cost", since.String())
-
+	if rsp.MetaData == nil {
+		rsp.MetaData = make(map[string]interface{})
+	}
+	rsp.MetaData["cost"] = since.String()
 	//ctx.Response = rsp
 	//todo 判断是否需要reset body
 

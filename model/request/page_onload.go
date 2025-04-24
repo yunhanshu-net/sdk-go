@@ -1,6 +1,9 @@
 package request
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type OnApiCreated struct {
 	Method string `json:"method"`
@@ -29,6 +32,10 @@ type Change struct {
 	Type   string `json:"type"`
 }
 
+func (c *Change) String() string {
+	return fmt.Sprintf(`{"method": "%s", "router": "%s","type","%s"}`, c.Method, c.Router, c.Type)
+}
+
 type OnVersionChange struct {
 	Change []Change `json:"change"`
 }
@@ -44,12 +51,15 @@ type OnInputValidate struct {
 }
 
 type OnTableDeleteRows struct {
+	Ids []string `json:"ids"`
 }
 
 type OnTableUpdateRow struct {
+	Ids []string `json:"ids"`
 }
 
 type OnTableSearch struct {
+	Cond map[string]string `json:"cond"`
 }
 
 type Callback struct {

@@ -116,9 +116,9 @@ func TestParseStructFields(t *testing.T) {
 				exp := tt.expected[i]
 
 				// 验证字段名和类型
-				//if field.Name != exp.Name || field.Type != exp.Type {
+				//if field.Name != exp.Name || field.RenderType != exp.RenderType {
 				//	t.Errorf("字段 %d 不匹配:\n期望 %s (%s)\n实际 %s (%s)",
-				//		i, exp.Name, exp.Type, field.Name, field.Type)
+				//		i, exp.Name, exp.RenderType, field.Name, field.RenderType)
 				//}
 
 				// 验证标签键值对

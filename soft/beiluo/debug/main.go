@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/yunhanshu-net/sdk-go/model/response"
 	"github.com/yunhanshu-net/sdk-go/runner"
+	"github.com/yunhanshu-net/sdk-go/soft/beiluo/debug/version/v1/api/apiinfo"
 	"github.com/yunhanshu-net/sdk-go/soft/beiluo/debug/version/v1/api/calc"
 )
 
@@ -15,6 +16,7 @@ type HelloReq struct {
 
 func main() {
 	calc.Setup()
+	apiinfo.Setup()
 	runner.Get("/hello", func(ctx *runner.Context, req *HelloReq, resp response.Response) error {
 		return resp.JSON(HelloResp{Hello: "hello 12", World: "World 121"}).Build()
 	})

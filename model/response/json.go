@@ -20,12 +20,6 @@ func (r *Data) JSON(data interface{}) JSON {
 	r.StatusCode = http.StatusOK
 	return bz
 }
-func (r *Data) Form(data interface{}) JSON {
-	r.DataType = DataTypeJSON
-	bz := &jsonData{Msg: successMsg, Code: successCode, Data: data, response: r}
-	r.StatusCode = http.StatusOK
-	return bz
-}
 
 func (r *Data) FailWithJSON(data interface{}, msg string, meta ...map[string]interface{}) error {
 	r.DataType = DataTypeJSON
@@ -35,6 +29,15 @@ func (r *Data) FailWithJSON(data interface{}, msg string, meta ...map[string]int
 		bz.MetaData = meta[0]
 	}
 	return bz.Build()
+}
+
+type formResp struct {
+	Code     int                    `json:"code"`
+	Msg      string                 `json:"msg"`
+	DataType DataType               `json:"data_type"`
+	TraceID  string                 `json:"trace_id"`
+	MetaData map[string]interface{} `json:"meta_data"`
+	Data     interface{}            `json:"data"`
 }
 
 type jsonData struct {
@@ -55,7 +58,7 @@ func (j *jsonData) GetDataType() DataType {
 func (j *jsonData) Build() error {
 	j.response.DataType = j.GetDataType()
 	j.response.Multiple = false
-	r := &rsp{
+	r := &formResp{
 		Code:     j.Code,
 		Msg:      j.Msg,
 		Data:     j.Data,
