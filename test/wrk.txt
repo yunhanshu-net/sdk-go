@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# 默认路由测试脚本 - 适用于debug应用
+# 这个脚本用于测试debug应用的各种默认路由性能
+
+# 设置基本参数
+BASE_URL="http://127.0.0.1:9999"
+APP_OWNER="beiluo"
+APP_NAME="debug"
+
+echo "开始负载测试 - debug应用默认路由"
+echo "===================="
+
+# 第一部分：固定时间内能处理多少请求
+echo "测试场景一：固定时间内能处理多少请求（5秒）"
+echo "===================="
+
+# 测试 _get_api_infos 接口
+echo "测试 _get_api_infos 接口"
+wrk -t12 -c200 -d5s http://127.0.0.1:9999/api/runner/beiluo/debug/_get_api_infos
+echo "===================="
+
+# 测试 _get_api_info 接口 (需要参数)
+echo "测试 _get_api_info 接口"
+wrk -t12 -c200 -d5s http://127.0.0.1:9999/api/runner/beiluo/debug/_get_api_info?router=/hello\&method=GET
+echo "===================="
+
+# 测试 _env 接口
+echo "测试 _env 接口"
+wrk -t12 -c200 -d5s http://127.0.0.1:9999/api/runner/beiluo/debug/_env
+echo "===================="
+
+# 测试 _ping 接口
+echo "测试 _ping 接口"
+wrk -t12 -c200 -d5s http://127.0.0.1:9999/api/runner/beiluo/debug/_ping
+echo "===================="
+
+# 测试 /hello 接口 (非默认路由，用作对比)
+echo "测试 /hello 接口 (非默认路由)"
+wrk -t12 -c200 -d5s http://127.0.0.1:9999/api/runner/beiluo/debug/hello
+echo "===================="
+
+# 第二部分：测试固定请求数量需要多少时间
+echo "测试场景二：处理固定数量请求所需时间（30000请求）"
+echo "===================="
+
+# 创建Lua脚本用于限制请求数量
+cat > fixed_requests.lua << 'EOF'
+-- 设置请求总数
+local total_requests = 30000
+local counter = 0
+
+request = function()
+  counter = counter + 1
+  if counter <= total_requests then
+    return wrk.format()
+  else
+    wrk.thread:stop()
+    return wrk.format()
+  end
+end
+
+done = function(summary, latency, requests)
+  io.write("处理 " .. total_requests .. " 个请求完成\n")
+  io.write("总耗时: " .. summary.duration/1000000 .. " 秒\n")
+  io.write("平均RPS: " .. total_requests/(summary.duration/1000000) .. "\n")
+end
+EOF
+
+# 测试 _get_api_infos 接口 (固定请求数)
+echo "测试 _get_api_infos 接口（30000请求）"
+wrk -t12 -c200 -d60s -s fixed_requests.lua http://127.0.0.1:9999/api/runner/beiluo/debug/_get_api_infos
+echo "===================="
+
+# 测试 _ping 接口 (固定请求数)
+echo "测试 _ping 接口（30000请求）"
+wrk -t12 -c200 -d60s -s fixed_requests.lua http://127.0.0.1:9999/api/runner/beiluo/debug/_ping
+echo "===================="
+
+# 测试 /hello 接口 (固定请求数)
+echo "测试 /hello 接口（30000请求）"
+wrk -t12 -c200 -d60s -s fixed_requests.lua http://127.0.0.1:9999/api/runner/beiluo/debug/hello
+echo "===================="
+
+echo "负载测试完成" 
+
+# 清理临时文件
+rm -f fixed_requests.lua

@@ -5,6 +5,7 @@ import (
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
 	"strings"
+	"sync"
 )
 
 type routerInfo struct {
@@ -28,13 +29,24 @@ func fmtKey(router string, method string) string {
 }
 
 func (r *routerInfo) call(ctx context.Context, reqBody interface{}) (req *request.Request, resp *response.Data, err error) {
-
+	// 使用读锁访问缓存
+	handlerCacheMux.RLock()
 	meta, ok := handlerCacheMap[r.key]
+	handlerCacheMux.RUnlock()
+
 	if !ok {
-		h := &handlerMeta{}
-		handlerCacheMap[r.key] = h
-		meta = h
+		// 需要创建新的缓存项，使用写锁
+		handlerCacheMux.Lock()
+		// 双重检查锁定模式
+		meta, ok = handlerCacheMap[r.key]
+		if !ok {
+			h := &handlerMeta{}
+			handlerCacheMap[r.key] = h
+			meta = h
+		}
+		handlerCacheMux.Unlock()
 	}
+
 	//metaVal, _ := handlerCache.LoadOrStore(r.key, &handlerMeta{})
 	//meta := metaVal.(*handlerMeta)
 	// 确保只初始化一次
@@ -52,5 +64,4 @@ func (r *routerInfo) call(ctx context.Context, reqBody interface{}) (req *reques
 		return nil, nil, err
 	}
 	return req, resp, nil
-
 }

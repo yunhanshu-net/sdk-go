@@ -32,6 +32,7 @@ type runtimeMeta struct {
 
 var (
 	handlerCacheMap = make(map[string]*handlerMeta) // key: string -> *handlerMeta
+	handlerCacheMux = &sync.RWMutex{}               // 保护handlerCacheMap的互斥锁
 )
 
 // 运行时构建元数据

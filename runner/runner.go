@@ -11,22 +11,23 @@ import (
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
+	"os"
 	"runtime"
 	"runtime/debug"
 	"strings"
 	"time"
 )
 
+// New 创建一个新的Runner实例
 func New() *Runner {
 	return &Runner{
-		idle:         5,
-		lastHandelTs: time.Now(),
-		//handelFunctions: make(map[string]*Worker),
+		idle:      5,
 		routerMap: make(map[string]*routerInfo),
 		down:      make(chan struct{}, 1),
 	}
 }
 
+// Runner 运行器结构体
 type Runner struct {
 	isDebug       bool
 	detail        *model.Runner
@@ -41,30 +42,36 @@ type Runner struct {
 	down          chan struct{}
 }
 
+// init 初始化Runner
 func (r *Runner) init(args []string) error {
+	if len(args) < 3 {
+		return fmt.Errorf("参数不足，至少需要3个参数")
+	}
+
 	r.args = args
 	r.detail = &model.Runner{}
+
+	// 解析Runner名称
 	split := strings.Split(r.args[0], "_")
 	if len(split) > 1 {
 		r.detail.User = strings.ReplaceAll(split[0], "./", "")
 		r.detail.Name = split[1]
+	} else {
+		return fmt.Errorf("Runner名称格式不正确: %s", r.args[0])
 	}
-	fmt.Println("detail:", r.detail)
 
-	runtime.GOMAXPROCS(2)
-	r.get("/_env", env)
-	r.get("/_ping", ping)
-	//r.get("/_router_info", r.routerInfo)
-	//r.get("/_router_list_info", r.routerListInfo)
-	r.get("/_get_api_infos", r.getApiInfos)
-	r.get("/_get_api_info", r.getApiInfo) // 添加新的路由
-	r.post("/_callback", r.callback)
+	logrus.Infof("Runner详情: %+v", r.detail)
 
-	var err error
-	var req = new(request.RunnerRequest)
-	req, err = r.getRequest(r.args[2])
+	// 设置最大处理器数量
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	// 注册内置路由
+	r.registerBuiltInRouters()
+
+	// 获取请求
+	req, err := r.getRequest(r.args[2])
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("获取请求失败: %w", err)
 	}
 
 	if req != nil {
@@ -74,100 +81,173 @@ func (r *Runner) init(args []string) error {
 		}
 	}
 
-	if r.args[1] == "_connect" { //长连接
-		if req.TransportConfig != nil && req.TransportConfig.IdleTime != 0 { //最大空闲时间
+	// 处理连接模式
+	if r.args[1] == "_connect" {
+		if req.TransportConfig != nil && req.TransportConfig.IdleTime != 0 {
 			r.idle = int64(req.TransportConfig.IdleTime)
 		}
+
+		// 异步连接NATS
+		errChan := make(chan error, 1)
 		go func() {
-			err = r.connectNats()
+			err := r.connectNats()
 			if err != nil {
-				logrus.Infof("connect err:%s", err.Error())
-				panic(err)
+				errChan <- err
 			}
 		}()
+
+		// 等待连接结果
+		select {
+		case err := <-errChan:
+			return fmt.Errorf("NATS连接失败: %w", err)
+		case <-time.After(5 * time.Second):
+			// 连接成功或超时
+		}
+
 		r.listen()
-		logrus.Infof("uuid:%s listen stop\n", r.uuid)
-		return nil
-	} else { //说明是单次执行
-		r.run(req)
+		logrus.Infof("UUID: %s 监听已停止", r.uuid)
 		return nil
 	}
 
+	// 单次执行模式
+	r.run(req)
 	return nil
 }
 
+// registerBuiltInRouters 注册内置路由
+func (r *Runner) registerBuiltInRouters() {
+	r.get("/_env", env)
+	r.get("/_ping", ping)
+	r.get("/_getApiInfos", r.getApiInfos)
+	r.get("/_getApiInfo", r.getApiInfo)
+	r.post("/_callback", r.callback)
+}
+
+// getRequest 从文件获取请求
 func (r *Runner) getRequest(filePath string) (*request.RunnerRequest, error) {
+	// 检查文件是否存在
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("请求文件不存在: %s", filePath)
+	}
+
 	var req request.RunnerRequest
 	req.Request = new(request.Request)
 	err := jsonx.UnmarshalFromFile(filePath, &req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("请求解析失败: %w", err)
 	}
 	return &req, nil
 }
 
+// getRouter 获取路由
 func (r *Runner) getRouter(router string, method string) (worker *routerInfo, exist bool) {
 	worker, ok := r.routerMap[fmtKey(router, method)]
-	if ok {
-		return worker, true
-	}
-	return nil, false
+	return worker, ok
 }
 
-func (r *Runner) runRequest(ctx0 context.Context, req *request.Request) (*response.Data, error) {
-	//worker, exist := r.getRouterWorker(ctx.Request.Route, ctx.Request.Method)
+// runRequest 执行请求
+func (r *Runner) runRequest(ctx context.Context, req *request.Request) (*response.Data, error) {
 	router, exist := r.getRouter(req.Route, req.Method)
+	if !exist {
+		routersJSON, _ := json.Marshal(r.routerMap)
+		logrus.Warnf("可用路由: %s", string(routersJSON))
+		return nil, fmt.Errorf("路由未找到: [%s] %s", req.Method, req.Route)
+	}
+
+	// 使用defer-recover处理panic
+	var result *response.Data
+	var err error
+
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				stack := debug.Stack()
+				errMsg := fmt.Sprintf("请求处理panic: %v", r)
+				logrus.Errorf("%s\n调用栈: %s", errMsg, stack)
+				err = fmt.Errorf(errMsg)
+				// 不要在这里再打印，避免冗余
+				fmt.Printf("err: %s\n调用栈: %s\n", errMsg, stack)
+			}
+		}()
+
+		start := time.Now()
+		_, rsp, callErr := router.call(ctx, req.Body)
+		if callErr != nil {
+			err = fmt.Errorf("路由调用失败: %w", callErr)
+			return
+		}
+
+		// 记录执行时间
+		elapsed := time.Since(start)
+		if rsp.MetaData == nil {
+			rsp.MetaData = make(map[string]interface{})
+		}
+		rsp.MetaData["cost"] = elapsed.String()
+		rsp.MetaData["memory"] = getMemoryUsage()
+
+		result = rsp
+	}()
+
+	return result, err
+}
+
+// getMemoryUsage 获取内存使用情况
+func getMemoryUsage() string {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	return fmt.Sprintf("%.2f MB", float64(m.Alloc)/1024/1024)
+}
+
+// run 运行单次请求
+func (r *Runner) run(req *request.RunnerRequest) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() {
-		errPanic := recover()
-		if errPanic != nil {
-			stack := debug.Stack()
-			// 增加更详细的错误信息输出
-			fmt.Printf("具体错误: %v\n", errPanic)
-			logrus.Errorf("runRequest panic err:%s req:%+v stack:%s", errPanic, req, string(stack))
-			fmt.Println(string(stack))
+		cancel()
+		// 单次执行模式下，执行完请求后自动关闭资源
+		if !r.isDebug {
+			Shutdown()
 		}
 	}()
 
-	if !exist {
-		marshal, _ := json.Marshal(r.routerMap)
-		fmt.Printf("handels: %s\n", string(marshal))
-		fmt.Printf("method:%s router:%s not found\n", req.Method, req.Route)
-		return nil, fmt.Errorf("method:%s router:%s not found\n", req.Method, req.Route)
-	}
-
-	//marshal, err := sonic.Marshal(req.Body)
-	//if err != nil {
-	//	return nil, err
-	//}
-	now := time.Now()
-	_, rsp, err := router.call(ctx0, req.Body)
-	if err != nil {
-		logrus.Errorf("runRequest err:%s", err.Error())
-		return nil, err
-	}
-	since := time.Since(now)
-	if rsp.MetaData == nil {
-		rsp.MetaData = make(map[string]interface{})
-	}
-	rsp.MetaData["cost"] = since.String()
-	//ctx.Response = rsp
-	//todo 判断是否需要reset body
-
-	return rsp, nil
-}
-
-func (r *Runner) run(req *request.RunnerRequest) {
-
-	ctx := context.Background()
 	resp, err := r.runRequest(ctx, req.Request)
 	if err != nil {
-		panic(err)
+		errorResp := &response.Data{
+			Msg: "请求处理失败",
+			MetaData: map[string]interface{}{
+				"error": err.Error(),
+			},
+		}
+		marshal, _ := sonic.Marshal(errorResp)
+		fmt.Println("<Response>" + string(marshal) + "</Response>")
+		return
 	}
+
 	marshal, err := sonic.Marshal(resp)
 	if err != nil {
-		panic(err)
+		logrus.Errorf("响应序列化失败: %s", err.Error())
+		fmt.Println("<Response>{\"code\":500,\"msg\":\"响应序列化失败\"}</Response>")
+		return
 	}
-	//todo 这里只是用来测试
-	//jsonx.SaveFile("./out.json", httpContext.Response)
+
 	fmt.Println("<Response>" + string(marshal) + "</Response>")
 }
+
+// Run 运行Runner
+//func (r *Runner) Run() error {
+//	// 先初始化
+//	err := r.init(os.Args)
+//	if err != nil {
+//		return err
+//	}
+//
+//	// 如果不是连接模式，而是单次执行模式，这里已经执行完毕
+//	// 我们应该在这里释放资源，而不是依赖run方法
+//	if r.args[1] != "_connect" {
+//		// 在单次执行模式下，runner.go中的run方法已经处理了请求
+//		// 不需要再次调用Shutdown，避免重复关闭
+//	} else {
+//		// 在连接模式下，资源会在listen中通过信号处理或超时机制关闭
+//	}
+//
+//	return nil
+//}

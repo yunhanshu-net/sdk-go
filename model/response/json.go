@@ -24,7 +24,7 @@ func (r *Data) JSON(data interface{}) JSON {
 func (r *Data) FailWithJSON(data interface{}, msg string, meta ...map[string]interface{}) error {
 	r.DataType = DataTypeJSON
 
-	bz := &jsonData{Msg: msg, Code: -1, Data: data, DataType: DataTypeJSON}
+	bz := &jsonData{Msg: msg, Code: -1, Data: data, DataType: DataTypeJSON, response: r}
 	if len(meta) > 0 {
 		bz.MetaData = meta[0]
 	}
