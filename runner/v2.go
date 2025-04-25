@@ -2,32 +2,36 @@ package runner
 
 import (
 	"fmt"
-	"github.com/bytedance/sonic"
-	"github.com/go-playground/form/v4"
-	"github.com/yunhanshu-net/sdk-go/model/response"
 	"net/url"
 	"reflect"
 	"sync"
+
+	"github.com/bytedance/sonic"
+	"github.com/go-playground/form/v4"
+	"github.com/yunhanshu-net/sdk-go/model/response"
 )
 
-// 接口定义
+// Validatable 定义了请求参数的验证接口
+// 实现此接口的请求对象可以在处理前进行自验证
 type Validatable interface {
 	Validate() error
 }
 
 //type Response interface{}
 
+// handlerMeta 包含处理函数的元数据和初始化状态
 type handlerMeta struct {
 	once      sync.Once    // 确保只初始化一次
 	meta      *runtimeMeta // 懒加载的元数据
 	initError error        // 初始化错误
 }
 
+// runtimeMeta 保存处理函数的运行时元数据
 type runtimeMeta struct {
-	fnValue     reflect.Value
-	reqType     reflect.Type
-	reqPool     *sync.Pool
-	hasValidate bool
+	fnValue     reflect.Value // 处理函数的反射值
+	reqType     reflect.Type  // 请求参数的类型
+	reqPool     *sync.Pool    // 请求对象池，减少GC压力
+	hasValidate bool          // 是否实现了Validate接口
 }
 
 var (
@@ -36,9 +40,10 @@ var (
 )
 
 // 运行时构建元数据
+// buildRuntimeMeta 通过反射分析处理函数，构建运行时所需的元数据
+// fn 参数必须是符合 func(*Context, *T, response.Response) error 签名的函数
+// 其中 T 必须是一个结构体类型
 func buildRuntimeMeta(fn interface{}) (*runtimeMeta, error) {
-	// 实际项目中需要根据key获取原始handler
-	// 这里简化处理，使用固定示例handler
 	rawHandler := fn
 
 	// 反射分析handler
@@ -68,73 +73,60 @@ func buildRuntimeMeta(fn interface{}) (*runtimeMeta, error) {
 		},
 	}
 
-	// 预生成JSON解析器
-	//meta.jsonParser = func(data []byte) (interface{}, error) {
-	//	req := meta.reqPool.Get()
-	//	if err := json.Unmarshal(data, req); err != nil {
-	//		qPool.Put(req)
-	//		return nil, err
-	//	}
-	//	return req, nil
-	//}
-
-	// 检查Validate方法（带缓存）
-	//if cached, ok := validateCache.Load(reqType); ok {
-	//	meta.hasValidate = cached.(bool)
-	//} else {
-	//	_, meta.hasValidate = reflect.New(reqType.Elem()).Interface().(Validatable)
-	//	validateCache.Store(reqType, meta.hasValidate)
-	//}
+	// 检查是否实现了Validate方法
+	tempInstance := reflect.New(reqType.Elem()).Interface()
+	if v, ok := tempInstance.(Validatable); ok && v != nil {
+		meta.hasValidate = true
+	}
 
 	return meta, nil
 }
 
 // 实际调用逻辑
 func doCall(method string, meta *runtimeMeta, ctx *Context, resp *response.Data, body interface{}) error {
-
 	req := meta.reqPool.Get()
 	var err error
 
+	// 确保在所有错误路径上都返回对象到池中
+	defer meta.reqPool.Put(req)
+
 	if body != nil {
 		if method == "GET" {
-
 			query, err1 := url.ParseQuery(body.(string))
 			if err1 != nil {
-				return err1
+				return fmt.Errorf("解析查询参数失败: %w", err1)
 			}
 			err1 = form.NewDecoder().Decode(req, query)
 			if err1 != nil {
-				return err1
+				return fmt.Errorf("解码表单数据失败: %w", err1)
 			}
 		} else {
 			err = sonic.Unmarshal([]byte(body.(string)), req)
+			if err != nil {
+				return fmt.Errorf("JSON解析失败: %w", err)
+			}
 		}
 	}
 
-	// 解析请求
-	//req, err := meta.jsonParser(body)
-	if err != nil {
-		return fmt.Errorf("JSON解析失败: %w", err)
+	// 执行验证（如果需要的话，取消注释并实现）
+	if meta.hasValidate {
+		if v, ok := req.(Validatable); ok && v != nil {
+			if err := v.Validate(); err != nil {
+				return fmt.Errorf("验证失败: %w", err)
+			}
+		}
 	}
-	defer meta.reqPool.Put(req)
-
-	// 执行验证
-	//if meta.hasValidate {
-	//	if err := req.(Validatable).Validate(); err != nil {
-	//		return fmt.Errorf("验证失败: %w", err)
-	//	}
-	//}
 
 	if resp == nil {
 		resp = new(response.Data)
 	}
-	fmt.Println("meta:", meta)
-	fmt.Println("meta.fnValue:", meta.fnValue)
 
 	// 反射调用
 	results := meta.fnValue.Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(req), reflect.ValueOf(resp)})
-	if err := results[0].Interface(); err != nil {
-		return err.(error)
+	if result := results[0].Interface(); result != nil {
+		if err, ok := result.(error); ok {
+			return err
+		}
 	}
 	return nil
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
 	"strings"
-	"sync"
 )
 
 type routerInfo struct {
