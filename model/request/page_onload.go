@@ -1,7 +1,6 @@
 package request
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -60,25 +59,6 @@ type OnTableUpdateRow struct {
 
 type OnTableSearch struct {
 	Cond map[string]string `json:"cond"`
-}
-
-type Callback struct {
-	Method string      `json:"method"`
-	Router string      `json:"router"`
-	Type   string      `json:"type"`
-	Body   interface{} `json:"body"`
-}
-
-func (c *Callback) DecodeData(el interface{}) error {
-	marshal, err := json.Marshal(c.Body)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(marshal, &el)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 //func (c *Callback) BindData(req interface{}) error {

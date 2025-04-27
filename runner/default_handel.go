@@ -5,7 +5,6 @@ import (
 	"github.com/yunhanshu-net/sdk-go/model/dto/api"
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
-	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
 	"gorm.io/gorm/schema"
 )
 

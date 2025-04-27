@@ -3,6 +3,7 @@ package runner
 
 import (
 	"fmt"
+	"github.com/yunhanshu-net/sdk-go/model/dto/callback"
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
 )
@@ -70,8 +71,8 @@ type OnTableUpdateRow func(ctx *Context, req *request.OnTableUpdateRow) (*respon
 // OnTableSearch 当返回前端的数据是table类型时候，前端会把数据渲染成表格，这时候表格数据会有搜索的行为，实现这个函数用来搜索数据
 type OnTableSearch func(ctx *Context, req *request.OnTableSearch) (*response.OnTableSearch, error)
 
-func (r *Runner) callback(ctx *Context, req *request.Callback, resp response.Response) (err error) {
-	var res response.Callback
+func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Response) (err error) {
+	var res callback.Response
 
 	worker, exist := r.getRouter(req.Router, req.Method)
 	if !exist {

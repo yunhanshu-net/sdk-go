@@ -17,7 +17,7 @@ const (
 )
 
 // sysCallback 系统回调
-func (r *Runner) sysCallback(ctx *Context, req *syscallback.Request, resp response.Response) error {
+func (r *Runner) _sysCallback(ctx *Context, req *syscallback.Request, resp response.Response) error {
 	var res syscallback.Response
 	switch req.CallbackType {
 	case SysCallbackTypeOnVersionChange:

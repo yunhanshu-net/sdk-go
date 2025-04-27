@@ -121,7 +121,8 @@ func (r *Runner) registerBuiltInRouters() {
 	r.get("/_ping", ping)
 	r.get("/_getApiInfos", r._getApiInfos)
 	r.get("/_getApiInfo", r._getApiInfo)
-	r.post("/_callback", r.callback)
+	r.post("/_callback", r._callback)
+	r.post("/_sysCallback", r._sysCallback)
 }
 
 // getRequest 从文件获取请求
