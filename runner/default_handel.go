@@ -67,10 +67,9 @@ func (r *Runner) buildApiInfo(worker *routerInfo) (*api.Info, error) {
 	return apiInfo, nil
 }
 
-func (r *Runner) getApiInfos(ctx *Context, req *request.NoData, resp response.Response) error {
+func (r *Runner) getApiInfos() ([]*api.Info, error) {
 	functions := r.routerMap
 	var apis []*api.Info
-	fmt.Println("routerMap:", jsonx.String(r.routerMap))
 	for _, worker := range functions {
 		if worker.IsDefaultRouter() {
 			continue
@@ -83,13 +82,13 @@ func (r *Runner) getApiInfos(ctx *Context, req *request.NoData, resp response.Re
 
 		apis = append(apis, apiInfo)
 	}
-	return resp.JSON(apis).Build()
+	return apis, nil
 }
 
-func (r *Runner) getApiInfo(ctx *Context, req *request.ApiInfoRequest, resp response.Response) error {
+func (r *Runner) getApiInfo(req *request.ApiInfoRequest) (*api.Info, error) {
 	// 参数验证
 	if req.Router == "" {
-		return resp.FailWithJSON(nil, "router参数不能为空")
+		return nil, fmt.Errorf("router参数不能为空")
 	}
 
 	// 如果没有指定Method，默认为GET
@@ -100,14 +99,30 @@ func (r *Runner) getApiInfo(ctx *Context, req *request.ApiInfoRequest, resp resp
 	// 获取指定的路由信息
 	worker, exist := r.getRouter(req.Router, req.Method)
 	if !exist {
-		return resp.FailWithJSON(nil, fmt.Sprintf("未找到路由: %s [%s]", req.Router, req.Method))
+		return nil, fmt.Errorf("未找到路由: %s [%s]", req.Router, req.Method)
 	}
 
 	apiInfo, err := r.buildApiInfo(worker)
 	if err != nil {
+		return nil, err
+	}
+	return apiInfo, nil
+
+}
+
+func (r *Runner) _getApiInfos(ctx *Context, req *request.NoData, resp response.Response) error {
+	apis, err := r.getApiInfos()
+	if err != nil {
 		return resp.FailWithJSON(nil, err.Error())
 	}
+	return resp.JSON(apis).Build()
+}
 
+func (r *Runner) _getApiInfo(ctx *Context, req *request.ApiInfoRequest, resp response.Response) error {
+	apiInfo, err := r.getApiInfo(req)
+	if err != nil {
+		return resp.FailWithJSON(nil, err.Error())
+	}
 	// 返回API信息
 	return resp.JSON(apiInfo).Build()
 }

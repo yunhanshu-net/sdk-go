@@ -160,3 +160,8 @@ type Info struct {
 	UseTables []string `json:"use_tables"`
 	Callbacks []string `json:"callbacks"`
 }
+
+type ApiLogs struct {
+	Version string  `json:"version"`
+	Apis    []*Info `json:"apis"`
+}

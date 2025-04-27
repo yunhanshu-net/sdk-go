@@ -2,6 +2,8 @@ package model
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 type Runner struct {
@@ -21,4 +23,13 @@ type Runner struct {
 
 func (r *Runner) GetRequestSubject() string {
 	return fmt.Sprintf("runner.%s.%s.%s.run", r.User, r.Name, r.Version)
+}
+
+func (r *Runner) GetLastVersion() (string, error) {
+	all := strings.ReplaceAll(r.Version, "v", "")
+	atoi, err := strconv.Atoi(all)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("v%d", atoi), nil
 }

@@ -4,6 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"runtime"
+	"runtime/debug"
+	"strings"
+	"time"
+
 	"github.com/bytedance/sonic"
 	"github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
@@ -11,11 +17,6 @@ import (
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
-	"os"
-	"runtime"
-	"runtime/debug"
-	"strings"
-	"time"
 )
 
 // New 创建一个新的Runner实例
@@ -57,7 +58,7 @@ func (r *Runner) init(args []string) error {
 		r.detail.User = strings.ReplaceAll(split[0], "./", "")
 		r.detail.Name = split[1]
 	} else {
-		return fmt.Errorf("Runner名称格式不正确: %s", r.args[0])
+		return fmt.Errorf("runner名称格式不正确: %s", r.args[0])
 	}
 
 	logrus.Infof("Runner详情: %+v", r.detail)
@@ -118,8 +119,8 @@ func (r *Runner) init(args []string) error {
 func (r *Runner) registerBuiltInRouters() {
 	r.get("/_env", env)
 	r.get("/_ping", ping)
-	r.get("/_getApiInfos", r.getApiInfos)
-	r.get("/_getApiInfo", r.getApiInfo)
+	r.get("/_getApiInfos", r._getApiInfos)
+	r.get("/_getApiInfo", r._getApiInfo)
 	r.post("/_callback", r.callback)
 }
 
@@ -165,7 +166,7 @@ func (r *Runner) runRequest(ctx context.Context, req *request.Request) (*respons
 				errMsg := fmt.Sprintf("请求处理panic: %v", r)
 				logrus.Errorf("%s\n调用栈: %s", errMsg, stack)
 				err = fmt.Errorf(errMsg)
-				// 不要在这里再打印，避免冗余
+				// 这里打印是方便我出现错误时候可以直接在控制台看到日志
 				fmt.Printf("err: %s\n调用栈: %s\n", errMsg, stack)
 			}
 		}()
