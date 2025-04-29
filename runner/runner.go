@@ -122,7 +122,7 @@ func (r *Runner) registerBuiltInRouters() {
 	r.get("/_getApiInfos", r._getApiInfos)
 	r.get("/_getApiInfo", r._getApiInfo)
 	r.post("/_callback", r._callback)
-	r.post("/_sysCallback", r._sysCallback)
+	r.post("/_sysCallback/sysOnVersionChange", r._sysOnVersionChange)
 }
 
 // getRequest 从文件获取请求

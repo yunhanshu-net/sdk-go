@@ -22,7 +22,7 @@ func main() {
 
 	// 注册路由
 	runner.Get("/hello", func(ctx *runner.Context, req *HelloReq, resp response.Response) error {
-		return resp.JSON(HelloResp{Hello: "hello", World: "World"}).Build()
+		return resp.Form(HelloResp{Hello: "hello", World: "World"}).Build()
 	})
 
 	// 运行应用 - Shutdown处理已经在runner库中实现

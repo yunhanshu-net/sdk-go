@@ -79,7 +79,7 @@ func CreateTask(ctx *runner.Context, req *TaskRequest, resp response.Response) e
 		logrus.Errorf("创建任务失败: %v", err)
 		return err
 	}
-	return resp.JSON(task).Build()
+	return resp.Form(task).Build()
 }
 
 func UpdateTaskStatus(ctx *runner.Context, req *TaskRequest, resp response.Response) error {
@@ -92,5 +92,5 @@ func UpdateTaskStatus(ctx *runner.Context, req *TaskRequest, resp response.Respo
 		logrus.Errorf("更新任务状态失败: %v", result.Error)
 		return result.Error
 	}
-	return resp.JSON(map[string]interface{}{"updated_count": result.RowsAffected}).Build()
+	return resp.Form(map[string]interface{}{"updated_count": result.RowsAffected}).Build()
 }

@@ -248,5 +248,5 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 		return fmt.Errorf("unsupported callback type: %s", req.Type)
 	}
 
-	return resp.JSON(res).Build()
+	return resp.Form(res).Build()
 }

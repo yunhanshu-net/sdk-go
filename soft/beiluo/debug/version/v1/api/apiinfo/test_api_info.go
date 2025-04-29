@@ -200,7 +200,7 @@ func CreateItem(ctx *runner.Context, req *TestRequest, resp response.Response) e
 		return err
 	}
 
-	return resp.JSON(TestResponse{
+	return resp.Form(TestResponse{
 		ID:          item.ID,
 		Name:        item.Name,
 		Description: item.Description,
@@ -236,7 +236,7 @@ func UpdateItem(ctx *runner.Context, req *TestRequest, resp response.Response) e
 		return err
 	}
 
-	return resp.JSON(TestResponse{
+	return resp.Form(TestResponse{
 		ID:          item.ID,
 		Name:        item.Name,
 		Description: item.Description,
@@ -260,7 +260,7 @@ func DeleteItem(ctx *runner.Context, req *TestRequest, resp response.Response) e
 		return result.Error
 	}
 
-	return resp.JSON(map[string]interface{}{
+	return resp.Form(map[string]interface{}{
 		"deleted_count": result.RowsAffected,
 	}).Build()
 }

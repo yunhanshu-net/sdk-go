@@ -16,6 +16,14 @@ const (
 	SysCallbackTypeOnVersionChange = "SysOnVersionChange" // 每次版本变更时，（新增，删除api），runcher都会触发此回掉
 )
 
+func (r *Runner) _sysOnVersionChange(ctx *Context, req *syscallback.SysOnVersionChangeReq, resp response.Response) error {
+	change, err := r.onSysVersionChange(req)
+	if err != nil {
+		return err
+	}
+	return resp.JSON(change)
+}
+
 // sysCallback 系统回调
 func (r *Runner) _sysCallback(ctx *Context, req *syscallback.Request, resp response.Response) error {
 	var res syscallback.Response
@@ -32,7 +40,7 @@ func (r *Runner) _sysCallback(ctx *Context, req *syscallback.Request, resp respo
 		}
 		res.Data = rsp
 	}
-	return resp.JSON(res).Build()
+	return resp.Form(res).Build()
 }
 
 func (r *Runner) onSysVersionChange(req *syscallback.SysOnVersionChangeReq) (*syscallback.SysOnVersionChangeResp, error) {

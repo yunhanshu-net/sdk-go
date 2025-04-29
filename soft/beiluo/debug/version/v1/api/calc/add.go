@@ -64,5 +64,5 @@ func Add(ctx *runner.Context, req *AddReq, resp response.Response) error {
 		logrus.Errorf("Add err:%s", err.Error())
 		return err
 	}
-	return resp.JSON(res).Build()
+	return resp.Form(res).Build()
 }

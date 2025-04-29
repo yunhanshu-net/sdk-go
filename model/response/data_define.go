@@ -3,6 +3,7 @@ package response
 type DataType string
 
 const (
+	DataTypeForm    = "form"
 	DataTypeJSON    = "json"
 	DataTypeTable   = "table"
 	DataTypeFiles   = "files"

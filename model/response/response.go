@@ -1,9 +1,10 @@
 package response
 
 type Response interface {
-	JSON(data interface{}) JSON
+	Form(data interface{}) Form
 	FailWithJSON(data interface{}, msg string, meta ...map[string]interface{}) error
 	Table(dataList interface{}, desc ...string) Table
+	JSON(data interface{}) error
 }
 
 type Data struct {

@@ -9,11 +9,11 @@ import (
 )
 
 func env(ctx *Context, req *request.NoData, resp response.Response) error {
-	return resp.JSON(map[string]string{"version": "1.0", "lang": "go"}).Build()
+	return resp.Form(map[string]string{"version": "1.0", "lang": "go"}).Build()
 }
 
 func ping(ctx *Context, req *request.NoData, resp response.Response) error {
-	return resp.JSON(map[string]string{"ping": "pong"}).Build()
+	return resp.Form(map[string]string{"ping": "pong"}).Build()
 }
 
 // buildApiInfo 从路由信息构建API信息
@@ -114,7 +114,7 @@ func (r *Runner) _getApiInfos(ctx *Context, req *request.NoData, resp response.R
 	if err != nil {
 		return resp.FailWithJSON(nil, err.Error())
 	}
-	return resp.JSON(apis).Build()
+	return resp.Form(apis).Build()
 }
 
 func (r *Runner) _getApiInfo(ctx *Context, req *request.ApiInfoRequest, resp response.Response) error {
@@ -123,7 +123,7 @@ func (r *Runner) _getApiInfo(ctx *Context, req *request.ApiInfoRequest, resp res
 		return resp.FailWithJSON(nil, err.Error())
 	}
 	// 返回API信息
-	return resp.JSON(apiInfo).Build()
+	return resp.Form(apiInfo).Build()
 }
 
 func getCallbacks(config *ApiConfig) []string {

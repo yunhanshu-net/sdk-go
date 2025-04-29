@@ -79,5 +79,5 @@ func AddCustomer(ctx *runner.Context, req *CustomerRequest, resp response.Respon
 		logrus.Errorf("添加客户失败: %v", err)
 		return err
 	}
-	return resp.JSON(customer).Build()
+	return resp.Form(customer).Build()
 }
