@@ -27,9 +27,9 @@ func (r *Runner) GetRequestSubject() string {
 
 func (r *Runner) GetLastVersion() (string, error) {
 	all := strings.ReplaceAll(r.Version, "v", "")
-	atoi, err := strconv.Atoi(all)
+	v, err := strconv.Atoi(all)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("v%d", atoi), nil
+	return fmt.Sprintf("v%d", v-1), nil
 }
