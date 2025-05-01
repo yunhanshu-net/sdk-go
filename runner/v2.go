@@ -1,13 +1,14 @@
 package runner
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/go-playground/form/v4"
 	"net/url"
 	"reflect"
 	"sync"
 
 	"github.com/bytedance/sonic"
-	"github.com/go-playground/form/v4"
 	"github.com/yunhanshu-net/sdk-go/model/response"
 )
 
@@ -92,18 +93,36 @@ func doCall(method string, meta *runtimeMeta, ctx *Context, resp *response.Data,
 
 	if body != nil {
 		if method == "GET" {
-			query, err1 := url.ParseQuery(body.(string))
-			if err1 != nil {
-				return fmt.Errorf("解析查询参数失败: %w", err1)
+			switch body.(type) {
+			case string:
+				query, err1 := url.ParseQuery(body.(string))
+				if err1 != nil {
+					return fmt.Errorf("解析查询参数失败: %w", err1)
+				}
+				err1 = form.NewDecoder().Decode(req, query)
+				if err1 != nil {
+					return fmt.Errorf("解码表单数据失败: %w", err1)
+				}
+			default:
+				return fmt.Errorf("body type faild")
 			}
-			err1 = form.NewDecoder().Decode(req, query)
-			if err1 != nil {
-				return fmt.Errorf("解码表单数据失败: %w", err1)
-			}
+
 		} else {
-			err = sonic.Unmarshal([]byte(body.(string)), req)
-			if err != nil {
-				return fmt.Errorf("JSON解析失败: %w", err)
+			switch body.(type) {
+			case string:
+				err = sonic.Unmarshal([]byte(body.(string)), req)
+				if err != nil {
+					return fmt.Errorf("JSON解析失败: %w", err)
+				}
+			case map[string]interface{}:
+				marshal, err := json.Marshal(body)
+				if err != nil {
+					return err
+				}
+				err = json.Unmarshal(marshal, req)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}

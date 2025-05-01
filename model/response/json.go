@@ -1,5 +1,7 @@
 package response
 
+import "net/http"
+
 type JSON interface {
 	Builder
 }
@@ -7,7 +9,6 @@ type JSON interface {
 func (r *Data) JSON(data interface{}) error {
 	r.DataType = DataTypeJSON
 	r.Body = data
-	r.StatusCode = successCode
-	r.Msg = successMsg
+	r.StatusCode = http.StatusOK
 	return nil
 }
