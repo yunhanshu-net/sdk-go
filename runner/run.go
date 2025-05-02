@@ -1,16 +1,12 @@
 package runner
 
 import (
+	"context"
 	"github.com/sirupsen/logrus"
 	"github.com/yunhanshu-net/sdk-go/model"
-	"github.com/yunhanshu-net/sdk-go/pkg/logger"
 	"os"
 	"time"
 )
-
-func init() {
-	logger.Setup()
-}
 
 func (r *Runner) listen() {
 	ticker := time.NewTicker(time.Second * 1)
@@ -51,7 +47,7 @@ func (r *Runner) Debug(user, runner, version string, idle int64, uuid string) er
 	// 创建一个channel来跟踪连接状态
 	errChan := make(chan error, 1)
 	go func() {
-		err := r.connectNats()
+		err := r.connectNats(context.Background())
 		if err != nil {
 			errChan <- err
 			logrus.Error(err)

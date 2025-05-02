@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/yunhanshu-net/sdk-go/pkg/constants"
+	"github.com/yunhanshu-net/sdk-go/pkg/logger"
 	"os"
 	"runtime"
 	"runtime/debug"
@@ -74,6 +76,12 @@ func (r *Runner) init(args []string) error {
 	if err != nil {
 		return fmt.Errorf("获取请求失败: %w", err)
 	}
+	var ctx context.Context
+	if req.Request != nil {
+		ctx = context.WithValue(context.Background(), constants.TraceID, req.Request.TraceID)
+	} else {
+		ctx = context.Background()
+	}
 
 	if req != nil {
 		r.detail = req.Runner
@@ -91,7 +99,7 @@ func (r *Runner) init(args []string) error {
 		// 异步连接NATS
 		errChan := make(chan error, 1)
 		go func() {
-			err := r.connectNats()
+			err := r.connectNats(ctx)
 			if err != nil {
 				errChan <- err
 			}
@@ -111,7 +119,7 @@ func (r *Runner) init(args []string) error {
 	}
 
 	// 单次执行模式
-	r.run(req)
+	r.run(ctx, req)
 	return nil
 }
 
@@ -152,7 +160,7 @@ func (r *Runner) runRequest(ctx context.Context, req *request.Request) (*respons
 	router, exist := r.getRouter(req.Route, req.Method)
 	if !exist {
 		routersJSON, _ := json.Marshal(r.routerMap)
-		logrus.Warnf("可用路由: %s", string(routersJSON))
+		logger.ErrorContextf(ctx, "可用路由: %s", string(routersJSON))
 		return nil, fmt.Errorf("路由未找到: [%s] %s", req.Method, req.Route)
 	}
 
@@ -165,7 +173,7 @@ func (r *Runner) runRequest(ctx context.Context, req *request.Request) (*respons
 			if r := recover(); r != nil {
 				stack := debug.Stack()
 				errMsg := fmt.Sprintf("请求处理panic: %v", r)
-				logrus.Errorf("%s\n调用栈: %s", errMsg, stack)
+				logger.ErrorContextf(ctx, "%s\n调用栈: %s", errMsg, stack)
 				err = fmt.Errorf(errMsg)
 				// 这里打印是方便我出现错误时候可以直接在控制台看到日志
 				fmt.Printf("err: %s\n调用栈: %s\n", errMsg, stack)
@@ -201,10 +209,9 @@ func getMemoryUsage() string {
 }
 
 // run 运行单次请求
-func (r *Runner) run(req *request.RunnerRequest) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+func (r *Runner) run(ctx context.Context, req *request.RunnerRequest) {
+	//ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() {
-		cancel()
 		// 单次执行模式下，执行完请求后自动关闭资源
 		if !r.isDebug {
 			Shutdown()

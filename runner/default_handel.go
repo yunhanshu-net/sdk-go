@@ -59,6 +59,7 @@ func (r *Runner) buildApiInfo(worker *routerInfo) (*api.Info, error) {
 			apiInfo.UseTables = append(apiInfo.UseTables, tb.TableName())
 		}
 	}
+	apiInfo.UseDB = config.UseDB
 
 	// 获取回调函数信息
 	apiInfo.Callbacks = getCallbacks(config)
@@ -138,6 +139,9 @@ func getCallbacks(config *ApiConfig) []string {
 	// API 生命周期回调
 	if config.OnApiCreated != nil {
 		callbacks = append(callbacks, CallbackTypeOnApiCreated)
+	}
+	if config.OnApiUpdated != nil {
+		callbacks = append(callbacks, CallbackTypeOnApiUpdated)
 	}
 	if config.BeforeApiDelete != nil {
 		callbacks = append(callbacks, CallbackTypeBeforeApiDelete)

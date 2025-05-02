@@ -29,6 +29,7 @@ func (r *Data) Table(resultList interface{}, title ...string) Table {
 	}
 	r.StatusCode = http.StatusOK
 	return &tableData{
+		TraceID:    r.TraceID,
 		val:        resultList,
 		response:   r,
 		title:      titleStr,
@@ -43,6 +44,7 @@ type column struct {
 }
 
 type tableResp struct {
+	TraceID  string                 `json:"trace_id"`
 	MetaData map[string]interface{} `json:"meta_data"`
 	Code     int                    `json:"code"`
 	Msg      string                 `json:"msg"`
@@ -154,6 +156,7 @@ func (t *tableData) AutoPaginated(db *gorm.DB, model interface{}, pageInfo *requ
 
 func (t *tableData) buildJSON() error {
 	tb := tableResp{
+		TraceID:  t.TraceID,
 		MetaData: nil,
 		Code:     successCode,
 		Msg:      successMsg,

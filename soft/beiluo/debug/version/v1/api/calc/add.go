@@ -18,15 +18,25 @@ type Calc struct {
 	Code     string `json:"code" runner:"code:code;name:code"`
 }
 
+func (c *Calc) TableName() string {
+	return "calc"
+}
+
 func init() {
 	addConfig := &runner.ApiConfig{
 		Tags:        "数据管理;数据分析;记录管理",
 		EnglishName: "calcAdd",
 		ChineseName: "添加计算记录",
 		ApiDesc:     "这里可以描述的详细一点",
+		Request:     &AddReq{},
+		Response:    &AddResp{},
+		UseDB:       []string{dbName},
 		UseTables:   []interface{}{&Calc{}}, //这里会在注册这个api的时候自动创建相关的表
 		OnPageLoad: func(ctx *runner.Context) (resetRequest interface{}, resp interface{}, err error) {
 			return &AddReq{Receiver: ctx.GetUsername()}, nil, nil
+		},
+		OnApiCreated: func(ctx *runner.Context, req *request.OnApiCreated) error {
+			return ctx.MustGetOrInitDB(dbName).AutoMigrate(&Calc{})
 		},
 		OnInputValidate: func(ctx *runner.Context, req *request.OnInputValidate) (*response.OnInputValidate, error) {
 			msg := ""
@@ -44,15 +54,15 @@ func init() {
 }
 
 type AddReq struct {
-	Receiver string `json:"receiver"`
-	A        int    `json:"a" form:"a"`
-	B        int    `json:"b" form:"b"`
-	Code     string `json:"code" form:"code"`
+	Receiver string `json:"receiver" form:"receiver" runner:"code:receiver;name:接收人"`
+	A        int    `json:"a" form:"a" runner:"code:a;name:值a"`
+	B        int    `json:"b" form:"b" runner:"code:b;name:值b"`
+	Code     string `json:"code" form:"code" runner:"code:code;name:code"`
 }
 
 type AddResp struct {
-	ID     int `json:"id"`
-	Result int `json:"result"`
+	ID     int `json:"id" runner:"code:id;name:id"`
+	Result int `json:"result" runner:"code:result;name:结果"`
 }
 
 // Add 拿这个处理函数举例，ctx是固定参数， req *AddReq是用户自定义的参数，根据接口请求参数自己定义，resp response.Response是固定参数，用户可以根据这个返回自己的json数据

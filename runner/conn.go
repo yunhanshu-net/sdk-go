@@ -9,7 +9,7 @@ import (
 )
 
 // connectNats 连接到NATS服务器并设置订阅
-func (r *Runner) connectNats() error {
+func (r *Runner) connectNats(ctx context.Context) error {
 	now := time.Now()
 	subject := r.detail.GetRequestSubject()
 

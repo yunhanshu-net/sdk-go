@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"github.com/sirupsen/logrus"
+	"github.com/yunhanshu-net/sdk-go/pkg/constants"
 	"sync"
 	"time"
 )
@@ -15,6 +16,18 @@ type Context struct {
 	sessionMutex sync.RWMutex
 	startTime    time.Time
 	requestID    string
+}
+
+func (c *Context) getTraceId() string {
+	value := c.Context.Value(constants.TraceID)
+	if value == nil {
+		return ""
+	}
+	v, ok := value.(string)
+	if ok {
+		return v
+	}
+	return ""
 }
 
 // UserInfo 用户信息结构

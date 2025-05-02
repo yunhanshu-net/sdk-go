@@ -9,6 +9,11 @@ type OnApiCreated struct {
 	Router string `json:"router"`
 }
 
+type OnApiUpdated struct {
+	Method string `json:"method"`
+	Router string `json:"router"`
+}
+
 type BeforeApiDelete struct {
 	Method string `json:"method"`
 	Router string `json:"router"`

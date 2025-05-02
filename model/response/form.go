@@ -16,7 +16,7 @@ type Form interface {
 
 func (r *Data) Form(data interface{}) Form {
 	r.DataType = DataTypeForm
-	bz := &formData{Msg: successMsg, Code: successCode, Data: data, response: r}
+	bz := &formData{TraceID: r.TraceID, Msg: successMsg, Code: successCode, Data: data, response: r}
 	r.StatusCode = http.StatusOK
 	return bz
 }
@@ -24,7 +24,7 @@ func (r *Data) Form(data interface{}) Form {
 func (r *Data) FailWithJSON(data interface{}, msg string, meta ...map[string]interface{}) error {
 	r.DataType = DataTypeForm
 
-	bz := &formData{Msg: msg, Code: -1, Data: data, DataType: DataTypeForm, response: r}
+	bz := &formData{TraceID: r.TraceID, Msg: msg, Code: -1, Data: data, DataType: DataTypeForm, response: r}
 	if len(meta) > 0 {
 		bz.MetaData = meta[0]
 	}

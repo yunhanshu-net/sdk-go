@@ -8,6 +8,7 @@ type Response interface {
 }
 
 type Data struct {
+	TraceID    string                 `json:"trace_id"`
 	MetaData   map[string]interface{} `json:"meta_data"`   //sdk 层
 	StatusCode int                    `json:"status_code"` //http对应http code 正常200
 	Msg        string                 `json:"msg"`

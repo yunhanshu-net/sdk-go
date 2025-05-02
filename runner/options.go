@@ -35,13 +35,14 @@ type ApiConfig struct {
 	RenderType string `json:"render"`
 
 	UseTables []interface{} `json:"use_tables"` //这里注册使用到的数据表
-
-	Request  interface{} `json:"-"`
-	Response interface{} `json:"-"`
+	UseDB     []string      `json:"use_db"`     //用到的db文件
+	Request   interface{}   `json:"-"`
+	Response  interface{}   `json:"-"`
 
 	OnPageLoad OnPageLoad `json:"-"`
 
 	OnApiCreated    OnApiCreated    `json:"-"`
+	OnApiUpdated    OnApiUpdated    `json:"-"`
 	BeforeApiDelete BeforeApiDelete `json:"-"`
 	AfterApiDeleted AfterApiDeleted `json:"-"`
 

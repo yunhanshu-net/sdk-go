@@ -2,10 +2,12 @@
 package runner
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/yunhanshu-net/sdk-go/model/dto/callback"
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
+	"github.com/yunhanshu-net/sdk-go/pkg/logger"
 )
 
 const (
@@ -14,6 +16,7 @@ const (
 
 	// API 生命周期
 	CallbackTypeOnApiCreated    = "OnApiCreated"    // API创建完成时
+	CallbackTypeOnApiUpdated    = "OnApiUpdated"    // API更新时
 	CallbackTypeBeforeApiDelete = "BeforeApiDelete" // API删除前
 	CallbackTypeAfterApiDeleted = "AfterApiDeleted" // API删除后
 
@@ -40,6 +43,9 @@ type OnPageLoad func(ctx *Context) (resetRequest interface{}, resp interface{}, 
 // OnApiCreated 创建新的api时候的回调函数,新增一个api假如新增了一张user表， 可以在这里用gorm的db.AutoMigrate(&User)来创建表，
 // 保证新版本的api可以正常使用新增的表 这个api只会在我创建这个api的时候执行一次
 type OnApiCreated func(ctx *Context, req *request.OnApiCreated) error
+
+// OnApiUpdated 当api发生变更时候的回调函数
+type OnApiUpdated func(ctx *Context, req *request.OnApiUpdated) error
 
 // BeforeApiDelete  api删除前触发回调，比如该api删除的话，可以备份某些数据
 type BeforeApiDelete func(ctx *Context, req *request.BeforeApiDelete) error
@@ -74,12 +80,20 @@ type OnTableSearch func(ctx *Context, req *request.OnTableSearch) (*response.OnT
 func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Response) (err error) {
 	var res callback.Response
 
+	// 记录请求参数
+	reqJSON, _ := json.Marshal(req)
+	logger.InfoContextf(ctx, "处理回调 [类型:%s] [路由:%s] [方法:%s] 请求参数: %s", req.Type, req.Router, req.Method, string(reqJSON))
+
 	worker, exist := r.getRouter(req.Router, req.Method)
 	if !exist {
-		return fmt.Errorf("router not found")
+		err = fmt.Errorf("router not found")
+		logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+		return err
 	}
 	if worker.Config == nil {
-		return fmt.Errorf("router config nil")
+		err = fmt.Errorf("router config nil")
+		logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+		return err
 	}
 	apiConf := worker.Config
 
@@ -87,166 +101,341 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 	// 页面加载回调
 	case CallbackTypeOnPageLoad:
 		if apiConf.OnPageLoad == nil {
-			return fmt.Errorf("OnPageLoad handler not configured")
+			err = fmt.Errorf("OnPageLoad handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
 		}
+
 		resetReq, rsp, err := apiConf.OnPageLoad(ctx)
 		if err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 			return fmt.Errorf("OnPageLoad failed: %w", err)
 		}
 		res.Request = resetReq
 		res.Response = rsp
 
+		// 记录响应参数
+		resetReqJSON, _ := json.Marshal(resetReq)
+		rspJSON, _ := json.Marshal(rsp)
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s] 重置请求: %s, 响应: %s", req.Type, resetReqJSON, rspJSON)
+
 	// API 生命周期回调
 	case CallbackTypeOnApiCreated:
 		var reqData request.OnApiCreated
 		if apiConf.OnApiCreated == nil {
-			return fmt.Errorf("OnApiCreated handler not configured")
+			err = fmt.Errorf("OnApiCreated handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
 		}
 		if err := req.DecodeData(&reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 解码失败 %v", req.Type, err)
 			return fmt.Errorf("OnApiCreated decode failed: %w", err)
 		}
 
+		// 记录请求详情
+		reqDataJSON, _ := json.Marshal(reqData)
+		logger.InfoContextf(ctx, "回调处理中 [类型:%s] 请求详情: %s", req.Type, reqDataJSON)
+
 		if err := apiConf.OnApiCreated(ctx, &reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 			return fmt.Errorf("OnApiCreated failed: %w", err)
 		}
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s]", req.Type)
+
+	case CallbackTypeOnApiUpdated:
+		var reqData request.OnApiUpdated
+		if apiConf.OnApiUpdated == nil {
+			err = fmt.Errorf("OnApiUpdated handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
+		}
+		if err := req.DecodeData(&reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 解码失败 %v", req.Type, err)
+			return fmt.Errorf("OnApiUpdated decode failed: %w", err)
+		}
+
+		// 记录请求详情
+		reqDataJSON, _ := json.Marshal(reqData)
+		logger.InfoContextf(ctx, "回调处理中 [类型:%s] 请求详情: %s", req.Type, reqDataJSON)
+
+		if err := apiConf.OnApiUpdated(ctx, &reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return fmt.Errorf("OnApiUpdated failed: %w", err)
+		}
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s]", req.Type)
 
 	case CallbackTypeBeforeApiDelete:
 		var reqData request.BeforeApiDelete
 		if apiConf.BeforeApiDelete == nil {
-			return fmt.Errorf("BeforeApiDelete handler not configured")
+			err = fmt.Errorf("BeforeApiDelete handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
 		}
 		if err := req.DecodeData(&reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 解码失败 %v", req.Type, err)
 			return fmt.Errorf("BeforeApiDelete decode failed: %w", err)
 		}
+
+		// 记录请求详情
+		reqDataJSON, _ := json.Marshal(reqData)
+		logger.InfoContextf(ctx, "回调处理中 [类型:%s] 请求详情: %s", req.Type, reqDataJSON)
+
 		if err := apiConf.BeforeApiDelete(ctx, &reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 			return fmt.Errorf("BeforeApiDelete failed: %w", err)
 		}
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s]", req.Type)
 
 	case CallbackTypeAfterApiDeleted:
 		var reqData request.AfterApiDeleted
 		if apiConf.AfterApiDeleted == nil {
-			return fmt.Errorf("AfterApiDeleted handler not configured")
+			err = fmt.Errorf("AfterApiDeleted handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
 		}
 		if err := req.DecodeData(&reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 解码失败 %v", req.Type, err)
 			return fmt.Errorf("AfterApiDeleted decode failed: %w", err)
 		}
+
+		// 记录请求详情
+		reqDataJSON, _ := json.Marshal(reqData)
+		logger.InfoContextf(ctx, "回调处理中 [类型:%s] 请求详情: %s", req.Type, reqDataJSON)
+
 		if err := apiConf.AfterApiDeleted(ctx, &reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 			return fmt.Errorf("AfterApiDeleted failed: %w", err)
 		}
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s]", req.Type)
 
 	// Runner 生命周期回调
 	case CallbackTypeBeforeRunnerClose:
 		var reqData request.BeforeRunnerClose
 		if apiConf.BeforeRunnerClose == nil {
-			return fmt.Errorf("BeforeRunnerClose handler not configured")
+			err = fmt.Errorf("BeforeRunnerClose handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
 		}
 		if err := req.DecodeData(&reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 解码失败 %v", req.Type, err)
 			return fmt.Errorf("BeforeRunnerClose decode failed: %w", err)
 		}
+
+		// 记录请求详情
+		reqDataJSON, _ := json.Marshal(reqData)
+		logger.InfoContextf(ctx, "回调处理中 [类型:%s] 请求详情: %s", req.Type, reqDataJSON)
+
 		if err := apiConf.BeforeRunnerClose(ctx, &reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 			return fmt.Errorf("BeforeRunnerClose failed: %w", err)
 		}
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s]", req.Type)
 
 	case CallbackTypeAfterRunnerClose:
 		var reqData request.AfterRunnerClose
 		if apiConf.AfterRunnerClose == nil {
-			return fmt.Errorf("AfterRunnerClose handler not configured")
+			err = fmt.Errorf("AfterRunnerClose handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
 		}
 		if err := req.DecodeData(&reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 解码失败 %v", req.Type, err)
 			return fmt.Errorf("AfterRunnerClose decode failed: %w", err)
 		}
+
+		// 记录请求详情
+		reqDataJSON, _ := json.Marshal(reqData)
+		logger.InfoContextf(ctx, "回调处理中 [类型:%s] 请求详情: %s", req.Type, reqDataJSON)
+
 		if err := apiConf.AfterRunnerClose(ctx, &reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 			return fmt.Errorf("AfterRunnerClose failed: %w", err)
 		}
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s]", req.Type)
 
 	// 版本控制回调
 	case CallbackTypeOnVersionChange:
 		var reqData request.OnVersionChange
 		if apiConf.OnVersionChange == nil {
-			return fmt.Errorf("OnVersionChange handler not configured")
+			err = fmt.Errorf("OnVersionChange handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
 		}
 		if err := req.DecodeData(&reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 解码失败 %v", req.Type, err)
 			return fmt.Errorf("OnVersionChange decode failed: %w", err)
 		}
+
+		// 记录请求详情
+		reqDataJSON, _ := json.Marshal(reqData)
+		logger.InfoContextf(ctx, "回调处理中 [类型:%s] 请求详情: %s", req.Type, reqDataJSON)
+
 		if err := apiConf.OnVersionChange(ctx, &reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 			return fmt.Errorf("OnVersionChange failed: %w", err)
 		}
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s]", req.Type)
 
 	// 输入交互回调
 	case CallbackTypeOnInputFuzzy:
 		var reqData request.OnInputFuzzy
 		if apiConf.OnInputFuzzy == nil {
-			return fmt.Errorf("OnInputFuzzy handler not configured")
+			err = fmt.Errorf("OnInputFuzzy handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
 		}
 		if err := req.DecodeData(&reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 解码失败 %v", req.Type, err)
 			return fmt.Errorf("OnInputFuzzy decode failed: %w", err)
 		}
+
+		// 记录请求详情
+		reqDataJSON, _ := json.Marshal(reqData)
+		logger.InfoContextf(ctx, "回调处理中 [类型:%s] 请求详情: %s", req.Type, reqDataJSON)
+
 		respData, err := apiConf.OnInputFuzzy(ctx, &reqData)
 		if err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 			return fmt.Errorf("OnInputFuzzy failed: %w", err)
 		}
 		res.Response = respData
 
+		// 记录响应参数
+		respDataJSON, _ := json.Marshal(respData)
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s] 响应: %s", req.Type, respDataJSON)
+
 	case CallbackTypeOnInputValidate:
 		var reqData request.OnInputValidate
 		if apiConf.OnInputValidate == nil {
-			return fmt.Errorf("OnInputValidate handler not configured")
+			err = fmt.Errorf("OnInputValidate handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
 		}
 		if err := req.DecodeData(&reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 解码失败 %v", req.Type, err)
 			return fmt.Errorf("OnInputValidate decode failed: %w", err)
 		}
+
+		// 记录请求详情
+		reqDataJSON, _ := json.Marshal(reqData)
+		logger.InfoContextf(ctx, "回调处理中 [类型:%s] 请求详情: %s", req.Type, reqDataJSON)
+
 		respData, err := apiConf.OnInputValidate(ctx, &reqData)
 		if err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 			return fmt.Errorf("OnInputValidate failed: %w", err)
 		}
 		res.Response = respData
+
+		// 记录响应参数
+		respDataJSON, _ := json.Marshal(respData)
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s] 响应: %s", req.Type, respDataJSON)
 
 	// 表格操作回调
 	case CallbackTypeOnTableDeleteRows:
 		var reqData request.OnTableDeleteRows
 		if apiConf.OnTableDeleteRows == nil {
-			return fmt.Errorf("OnTableDeleteRows handler not configured")
+			err = fmt.Errorf("OnTableDeleteRows handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
 		}
 		if err := req.DecodeData(&reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 解码失败 %v", req.Type, err)
 			return fmt.Errorf("OnTableDeleteRows decode failed: %w", err)
 		}
+
+		// 记录请求详情
+		reqDataJSON, _ := json.Marshal(reqData)
+		logger.InfoContextf(ctx, "回调处理中 [类型:%s] 请求详情: %s", req.Type, reqDataJSON)
+
 		respData, err := apiConf.OnTableDeleteRows(ctx, &reqData)
 		if err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 			return fmt.Errorf("OnTableDeleteRows failed: %w", err)
 		}
 		res.Response = respData
 
+		// 记录响应参数
+		respDataJSON, _ := json.Marshal(respData)
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s] 响应: %s", req.Type, respDataJSON)
+
 	case CallbackTypeOnTableUpdateRow:
 		var reqData request.OnTableUpdateRow
 		if apiConf.OnTableUpdateRow == nil {
-			return fmt.Errorf("OnTableUpdateRow handler not configured")
+			err = fmt.Errorf("OnTableUpdateRow handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
 		}
 		if err := req.DecodeData(&reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 解码失败 %v", req.Type, err)
 			return fmt.Errorf("OnTableUpdateRow decode failed: %w", err)
 		}
+
+		// 记录请求详情
+		reqDataJSON, _ := json.Marshal(reqData)
+		logger.InfoContextf(ctx, "回调处理中 [类型:%s] 请求详情: %s", req.Type, reqDataJSON)
+
 		respData, err := apiConf.OnTableUpdateRow(ctx, &reqData)
 		if err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 			return fmt.Errorf("OnTableUpdateRow failed: %w", err)
 		}
 		res.Response = respData
 
+		// 记录响应参数
+		respDataJSON, _ := json.Marshal(respData)
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s] 响应: %s", req.Type, respDataJSON)
+
 	case CallbackTypeOnTableSearch:
 		var reqData request.OnTableSearch
 		if apiConf.OnTableSearch == nil {
-			return fmt.Errorf("OnTableSearch handler not configured")
+			err = fmt.Errorf("OnTableSearch handler not configured")
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
+			return err
 		}
 		if err := req.DecodeData(&reqData); err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 解码失败 %v", req.Type, err)
 			return fmt.Errorf("OnTableSearch decode failed: %w", err)
 		}
+
+		// 记录请求详情
+		reqDataJSON, _ := json.Marshal(reqData)
+		logger.InfoContextf(ctx, "回调处理中 [类型:%s] 请求详情: %s", req.Type, reqDataJSON)
+
 		respData, err := apiConf.OnTableSearch(ctx, &reqData)
 		if err != nil {
+			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 			return fmt.Errorf("OnTableSearch failed: %w", err)
 		}
 		res.Response = respData
 
+		// 记录响应参数
+		respDataJSON, _ := json.Marshal(respData)
+		logger.InfoContextf(ctx, "回调处理成功 [类型:%s] 响应: %s", req.Type, respDataJSON)
+
 	default:
-		return fmt.Errorf("unsupported callback type: %s", req.Type)
+		err = fmt.Errorf("unsupported callback type: %s", req.Type)
+		logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 不支持的回调类型", req.Type)
+		return err
 	}
 
-	return resp.Form(res).Build()
+	err = resp.Form(res).Build()
+	if err != nil {
+		logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: 构建响应失败 %v", req.Type, err)
+		return err
+	}
+
+	// 在没有响应参数被记录的情况下，记录最终响应
+	if res.Response != nil && (req.Type == CallbackTypeOnApiCreated ||
+		req.Type == CallbackTypeOnApiUpdated ||
+		req.Type == CallbackTypeBeforeApiDelete ||
+		req.Type == CallbackTypeAfterApiDeleted ||
+		req.Type == CallbackTypeBeforeRunnerClose ||
+		req.Type == CallbackTypeAfterRunnerClose ||
+		req.Type == CallbackTypeOnVersionChange) {
+		resJSON, _ := json.Marshal(res.Response)
+		logger.InfoContextf(ctx, "回调处理完成 [类型:%s] 响应: %s", req.Type, resJSON)
+	}
+
+	return nil
 }

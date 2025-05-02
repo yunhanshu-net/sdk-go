@@ -158,6 +158,7 @@ type Info struct {
 	//输出参数
 	ParamsOut *Params  `json:"params_out"`
 	UseTables []string `json:"use_tables"`
+	UseDB     []string `json:"use_db"`
 	Callbacks []string `json:"callbacks"`
 }
 

@@ -139,7 +139,7 @@ func doCall(method string, meta *runtimeMeta, ctx *Context, resp *response.Data,
 	if resp == nil {
 		resp = new(response.Data)
 	}
-
+	resp.TraceID = ctx.getTraceId()
 	// 反射调用
 	results := meta.fnValue.Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(req), reflect.ValueOf(resp)})
 	if result := results[0].Interface(); result != nil {
