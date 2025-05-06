@@ -2,8 +2,8 @@ package calc
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/callback"
 	"github.com/yunhanshu-net/sdk-go/runner"
 )
 
@@ -35,10 +35,10 @@ func init() {
 		OnPageLoad: func(ctx *runner.Context) (resetRequest interface{}, resp interface{}, err error) {
 			return &AddReq{Receiver: ctx.GetUsername()}, nil, nil
 		},
-		OnApiCreated: func(ctx *runner.Context, req *request.OnApiCreated) error {
+		OnApiCreated: func(ctx *runner.Context, req *callback.OnApiCreated) error {
 			return ctx.MustGetOrInitDB(dbName).AutoMigrate(&Calc{})
 		},
-		OnInputValidate: func(ctx *runner.Context, req *request.OnInputValidate) (*response.OnInputValidate, error) {
+		OnInputValidate: func(ctx *runner.Context, req *callback.OnInputValidate) (*response.OnInputValidate, error) {
 			msg := ""
 			if req.Key == "code" {
 				if len(req.Value) > 64 {

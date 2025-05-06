@@ -4,9 +4,8 @@ package runner
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/yunhanshu-net/sdk-go/model/dto/callback"
-	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
+	callback2 "github.com/yunhanshu-net/sdk-go/pkg/dto/callback"
 	"github.com/yunhanshu-net/sdk-go/pkg/logger"
 )
 
@@ -42,43 +41,43 @@ type OnPageLoad func(ctx *Context) (resetRequest interface{}, resp interface{}, 
 
 // OnApiCreated 创建新的api时候的回调函数,新增一个api假如新增了一张user表， 可以在这里用gorm的db.AutoMigrate(&User)来创建表，
 // 保证新版本的api可以正常使用新增的表 这个api只会在我创建这个api的时候执行一次
-type OnApiCreated func(ctx *Context, req *request.OnApiCreated) error
+type OnApiCreated func(ctx *Context, req *callback2.OnApiCreated) error
 
 // OnApiUpdated 当api发生变更时候的回调函数
-type OnApiUpdated func(ctx *Context, req *request.OnApiUpdated) error
+type OnApiUpdated func(ctx *Context, req *callback2.OnApiUpdated) error
 
 // BeforeApiDelete  api删除前触发回调，比如该api删除的话，可以备份某些数据
-type BeforeApiDelete func(ctx *Context, req *request.BeforeApiDelete) error
+type BeforeApiDelete func(ctx *Context, req *callback2.BeforeApiDelete) error
 
 // AfterApiDeleted  api删除后触发回调，比如该api删除的话，可以在这里做一些操作，比如删除该api对应的表
-type AfterApiDeleted func(ctx *Context, req *request.AfterApiDeleted) error
+type AfterApiDeleted func(ctx *Context, req *callback2.AfterApiDeleted) error
 
 // BeforeRunnerClose 程序结束前的回调函数，可以在程序结束前做一些操作，比如上报一些数据
-type BeforeRunnerClose func(ctx *Context, req *request.BeforeRunnerClose) error
+type BeforeRunnerClose func(ctx *Context, req *callback2.BeforeRunnerClose) error
 
 // AfterRunnerClose 程序结束后的回调函数，可以在程序结束后做一些操作，比如清理某些文件
-type AfterRunnerClose func(ctx *Context, req *request.AfterRunnerClose) error
+type AfterRunnerClose func(ctx *Context, req *callback2.AfterRunnerClose) error
 
 // OnVersionChange 每次版本发生变更都会回调这个函数（新增/删除api）
-type OnVersionChange func(ctx *Context, req *request.OnVersionChange) error
+type OnVersionChange func(ctx *Context, req *callback2.OnVersionChange) error
 
 // OnInputFuzzy 模糊搜索回调函数，比如搜索用户，可以在这里做一些操作，比如根据用户名模糊搜索用户，然后返回用户列表
-type OnInputFuzzy func(ctx *Context, req *request.OnInputFuzzy) (*response.OnInputFuzzy, error)
+type OnInputFuzzy func(ctx *Context, req *callback2.OnInputFuzzy) (*response.OnInputFuzzy, error)
 
 // OnInputValidate 验证输入框输入的名称是否重复或者输入是否合法
-type OnInputValidate func(ctx *Context, req *request.OnInputValidate) (*response.OnInputValidate, error)
+type OnInputValidate func(ctx *Context, req *callback2.OnInputValidate) (*response.OnInputValidate, error)
 
 // OnTableDeleteRows 当返回前端的数据是table类型时候，前端会把数据渲染成表格，这时候表格数据会有删除的行为，实现这个函数用来删除数据
-type OnTableDeleteRows func(ctx *Context, req *request.OnTableDeleteRows) (*response.OnTableDeleteRows, error)
+type OnTableDeleteRows func(ctx *Context, req *callback2.OnTableDeleteRows) (*response.OnTableDeleteRows, error)
 
 // OnTableUpdateRow 当返回前端的数据是table类型时候，前端会把数据渲染成表格，这时候表格数据会有更新的行为，实现这个函数用来更新数据
-type OnTableUpdateRow func(ctx *Context, req *request.OnTableUpdateRow) (*response.OnTableUpdateRow, error)
+type OnTableUpdateRow func(ctx *Context, req *callback2.OnTableUpdateRow) (*response.OnTableUpdateRow, error)
 
 // OnTableSearch 当返回前端的数据是table类型时候，前端会把数据渲染成表格，这时候表格数据会有搜索的行为，实现这个函数用来搜索数据
-type OnTableSearch func(ctx *Context, req *request.OnTableSearch) (*response.OnTableSearch, error)
+type OnTableSearch func(ctx *Context, req *callback2.OnTableSearch) (*response.OnTableSearch, error)
 
-func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Response) (err error) {
-	var res callback.Response
+func (r *Runner) _callback(ctx *Context, req *callback2.Request, resp response.Response) (err error) {
+	var res callback2.Response
 
 	// 记录请求参数
 	reqJSON, _ := json.Marshal(req)
@@ -121,7 +120,7 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 
 	// API 生命周期回调
 	case CallbackTypeOnApiCreated:
-		var reqData request.OnApiCreated
+		var reqData callback2.OnApiCreated
 		if apiConf.OnApiCreated == nil {
 			err = fmt.Errorf("OnApiCreated handler not configured")
 			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
@@ -143,7 +142,7 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 		logger.InfoContextf(ctx, "回调处理成功 [类型:%s]", req.Type)
 
 	case CallbackTypeOnApiUpdated:
-		var reqData request.OnApiUpdated
+		var reqData callback2.OnApiUpdated
 		if apiConf.OnApiUpdated == nil {
 			err = fmt.Errorf("OnApiUpdated handler not configured")
 			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
@@ -165,7 +164,7 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 		logger.InfoContextf(ctx, "回调处理成功 [类型:%s]", req.Type)
 
 	case CallbackTypeBeforeApiDelete:
-		var reqData request.BeforeApiDelete
+		var reqData callback2.BeforeApiDelete
 		if apiConf.BeforeApiDelete == nil {
 			err = fmt.Errorf("BeforeApiDelete handler not configured")
 			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
@@ -187,7 +186,7 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 		logger.InfoContextf(ctx, "回调处理成功 [类型:%s]", req.Type)
 
 	case CallbackTypeAfterApiDeleted:
-		var reqData request.AfterApiDeleted
+		var reqData callback2.AfterApiDeleted
 		if apiConf.AfterApiDeleted == nil {
 			err = fmt.Errorf("AfterApiDeleted handler not configured")
 			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
@@ -210,7 +209,7 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 
 	// Runner 生命周期回调
 	case CallbackTypeBeforeRunnerClose:
-		var reqData request.BeforeRunnerClose
+		var reqData callback2.BeforeRunnerClose
 		if apiConf.BeforeRunnerClose == nil {
 			err = fmt.Errorf("BeforeRunnerClose handler not configured")
 			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
@@ -232,7 +231,7 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 		logger.InfoContextf(ctx, "回调处理成功 [类型:%s]", req.Type)
 
 	case CallbackTypeAfterRunnerClose:
-		var reqData request.AfterRunnerClose
+		var reqData callback2.AfterRunnerClose
 		if apiConf.AfterRunnerClose == nil {
 			err = fmt.Errorf("AfterRunnerClose handler not configured")
 			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
@@ -255,7 +254,7 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 
 	// 版本控制回调
 	case CallbackTypeOnVersionChange:
-		var reqData request.OnVersionChange
+		var reqData callback2.OnVersionChange
 		if apiConf.OnVersionChange == nil {
 			err = fmt.Errorf("OnVersionChange handler not configured")
 			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
@@ -278,7 +277,7 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 
 	// 输入交互回调
 	case CallbackTypeOnInputFuzzy:
-		var reqData request.OnInputFuzzy
+		var reqData callback2.OnInputFuzzy
 		if apiConf.OnInputFuzzy == nil {
 			err = fmt.Errorf("OnInputFuzzy handler not configured")
 			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
@@ -305,7 +304,7 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 		logger.InfoContextf(ctx, "回调处理成功 [类型:%s] 响应: %s", req.Type, respDataJSON)
 
 	case CallbackTypeOnInputValidate:
-		var reqData request.OnInputValidate
+		var reqData callback2.OnInputValidate
 		if apiConf.OnInputValidate == nil {
 			err = fmt.Errorf("OnInputValidate handler not configured")
 			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
@@ -333,7 +332,7 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 
 	// 表格操作回调
 	case CallbackTypeOnTableDeleteRows:
-		var reqData request.OnTableDeleteRows
+		var reqData callback2.OnTableDeleteRows
 		if apiConf.OnTableDeleteRows == nil {
 			err = fmt.Errorf("OnTableDeleteRows handler not configured")
 			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
@@ -360,7 +359,7 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 		logger.InfoContextf(ctx, "回调处理成功 [类型:%s] 响应: %s", req.Type, respDataJSON)
 
 	case CallbackTypeOnTableUpdateRow:
-		var reqData request.OnTableUpdateRow
+		var reqData callback2.OnTableUpdateRow
 		if apiConf.OnTableUpdateRow == nil {
 			err = fmt.Errorf("OnTableUpdateRow handler not configured")
 			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
@@ -387,7 +386,7 @@ func (r *Runner) _callback(ctx *Context, req *callback.Request, resp response.Re
 		logger.InfoContextf(ctx, "回调处理成功 [类型:%s] 响应: %s", req.Type, respDataJSON)
 
 	case CallbackTypeOnTableSearch:
-		var reqData request.OnTableSearch
+		var reqData callback2.OnTableSearch
 		if apiConf.OnTableSearch == nil {
 			err = fmt.Errorf("OnTableSearch handler not configured")
 			logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)

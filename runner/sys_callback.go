@@ -4,10 +4,10 @@ package runner
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"github.com/yunhanshu-net/sdk-go/model/dto/syscallback"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/api"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/syscallback"
 	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
 
-	"github.com/yunhanshu-net/sdk-go/model/dto/api"
 	"github.com/yunhanshu-net/sdk-go/model/response"
 )
 

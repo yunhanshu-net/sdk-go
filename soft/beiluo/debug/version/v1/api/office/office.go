@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/callback"
 	"github.com/yunhanshu-net/sdk-go/runner"
 	"time"
 )
@@ -25,10 +26,10 @@ func init() {
 		EnglishName: "taskManager",
 		ApiDesc:     "办公任务管理系统",
 		Tags:        "办公管理;任务管理",
-		OnApiCreated: func(ctx *runner.Context, req *request.OnApiCreated) error {
+		OnApiCreated: func(ctx *runner.Context, req *callback.OnApiCreated) error {
 			return runner.MustGetOrInitDB(taskDB).AutoMigrate(&Task{})
 		},
-		OnInputValidate: func(ctx *runner.Context, req *request.OnInputValidate) (*response.OnInputValidate, error) {
+		OnInputValidate: func(ctx *runner.Context, req *callback.OnInputValidate) (*response.OnInputValidate, error) {
 			if req.Key == "deadline" {
 				if _, err := time.Parse("2006-01-02", req.Value); err != nil {
 					return &response.OnInputValidate{Msg: "日期格式错误，请使用YYYY-MM-DD格式"}, nil

@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/callback"
 	"github.com/yunhanshu-net/sdk-go/runner"
 )
 
@@ -24,10 +25,10 @@ func init() {
 		EnglishName: "customerManager",
 		ApiDesc:     "企业客户关系管理系统",
 		Tags:        "CRM;客户管理",
-		OnApiCreated: func(ctx *runner.Context, req *request.OnApiCreated) error {
+		OnApiCreated: func(ctx *runner.Context, req *callback.OnApiCreated) error {
 			return runner.MustGetOrInitDB(crmDB).AutoMigrate(&Customer{})
 		},
-		OnInputFuzzy: func(ctx *runner.Context, req *request.OnInputFuzzy) (*response.OnInputFuzzy, error) {
+		OnInputFuzzy: func(ctx *runner.Context, req *callback.OnInputFuzzy) (*response.OnInputFuzzy, error) {
 			if req.Key == "industry" {
 				var industries []string
 				runner.MustGetOrInitDB(crmDB).

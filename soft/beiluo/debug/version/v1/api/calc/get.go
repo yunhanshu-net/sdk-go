@@ -3,6 +3,7 @@ package calc
 import (
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/callback"
 	"github.com/yunhanshu-net/sdk-go/runner"
 	"strconv"
 )
@@ -18,11 +19,11 @@ func init() {
 		EnglishName: "calcGet",
 		ApiDesc:     "这里可以描述的详细一点",
 		Tags:        "数据管理;数据分析;记录管理",
-		OnApiCreated: func(ctx *runner.Context, req *request.OnApiCreated) error {
+		OnApiCreated: func(ctx *runner.Context, req *callback.OnApiCreated) error {
 			db := runner.MustGetOrInitDB(dbName) //这里会返回*gorm.DB
 			return db.AutoMigrate(&Calc{})
 		},
-		AfterApiDeleted: func(ctx *runner.Context, req *request.AfterApiDeleted) error {
+		AfterApiDeleted: func(ctx *runner.Context, req *callback.AfterApiDeleted) error {
 			//视情况决定是否要删除表
 			return runner.MustGetOrInitDB(dbName).Migrator().DropTable(&Calc{})
 		},
@@ -32,7 +33,7 @@ func init() {
 			return &AddReq{A: 1, B: 2, Receiver: ctx.GetUsername()}, nil, nil
 		},
 
-		OnInputFuzzy: func(ctx *runner.Context, req *request.OnInputFuzzy) (*response.OnInputFuzzy, error) {
+		OnInputFuzzy: func(ctx *runner.Context, req *callback.OnInputFuzzy) (*response.OnInputFuzzy, error) {
 			var values []string
 			if req.Key == "a" { //
 				db := ctx.MustGetOrInitDB(dbName)

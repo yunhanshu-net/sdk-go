@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yunhanshu-net/sdk-go/model/request"
 	"github.com/yunhanshu-net/sdk-go/model/response"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/callback"
 	"github.com/yunhanshu-net/sdk-go/runner"
 	"time"
 )
@@ -74,29 +75,29 @@ func init() {
 		},
 
 		// API 生命周期回调
-		OnApiCreated: func(ctx *runner.Context, req *request.OnApiCreated) error {
+		OnApiCreated: func(ctx *runner.Context, req *callback.OnApiCreated) error {
 			return runner.MustGetOrInitDB(testDB).AutoMigrate(&TestModel{})
 		},
-		BeforeApiDelete: func(ctx *runner.Context, req *request.BeforeApiDelete) error {
+		BeforeApiDelete: func(ctx *runner.Context, req *callback.BeforeApiDelete) error {
 			logrus.Info("API即将被删除")
 			return nil
 		},
-		AfterApiDeleted: func(ctx *runner.Context, req *request.AfterApiDeleted) error {
+		AfterApiDeleted: func(ctx *runner.Context, req *callback.AfterApiDeleted) error {
 			return runner.MustGetOrInitDB(testDB).Migrator().DropTable(&TestModel{})
 		},
 
 		// 运行器生命周期回调
-		BeforeRunnerClose: func(ctx *runner.Context, req *request.BeforeRunnerClose) error {
+		BeforeRunnerClose: func(ctx *runner.Context, req *callback.BeforeRunnerClose) error {
 			logrus.Info("Runner即将关闭")
 			return nil
 		},
-		AfterRunnerClose: func(ctx *runner.Context, req *request.AfterRunnerClose) error {
+		AfterRunnerClose: func(ctx *runner.Context, req *callback.AfterRunnerClose) error {
 			logrus.Info("Runner已关闭")
 			return nil
 		},
 
 		// 版本控制回调
-		OnVersionChange: func(ctx *runner.Context, req *request.OnVersionChange) error {
+		OnVersionChange: func(ctx *runner.Context, req *callback.OnVersionChange) error {
 			for _, change := range req.Change {
 				logrus.Infof("[change]" + change.String())
 			}
@@ -104,13 +105,13 @@ func init() {
 		},
 
 		// 输入交互回调
-		OnInputFuzzy: func(ctx *runner.Context, req *request.OnInputFuzzy) (*response.OnInputFuzzy, error) {
+		OnInputFuzzy: func(ctx *runner.Context, req *callback.OnInputFuzzy) (*response.OnInputFuzzy, error) {
 			if req.Key == "category" {
 				return &response.OnInputFuzzy{Values: []string{"类型A", "类型B", "类型C"}}, nil
 			}
 			return nil, nil
 		},
-		OnInputValidate: func(ctx *runner.Context, req *request.OnInputValidate) (*response.OnInputValidate, error) {
+		OnInputValidate: func(ctx *runner.Context, req *callback.OnInputValidate) (*response.OnInputValidate, error) {
 			if req.Key == "name" && len(req.Value) < 2 {
 				return &response.OnInputValidate{Msg: "名称长度不能少于2个字符"}, nil
 			}
@@ -118,15 +119,15 @@ func init() {
 		},
 
 		// 表格操作回调
-		OnTableDeleteRows: func(ctx *runner.Context, req *request.OnTableDeleteRows) (*response.OnTableDeleteRows, error) {
+		OnTableDeleteRows: func(ctx *runner.Context, req *callback.OnTableDeleteRows) (*response.OnTableDeleteRows, error) {
 			logrus.Infof("删除表格行: %v", req.Ids)
 			return nil, nil
 		},
-		OnTableUpdateRow: func(ctx *runner.Context, req *request.OnTableUpdateRow) (*response.OnTableUpdateRow, error) {
+		OnTableUpdateRow: func(ctx *runner.Context, req *callback.OnTableUpdateRow) (*response.OnTableUpdateRow, error) {
 			logrus.Infof("更新表格行: %v", req.Ids)
 			return nil, nil
 		},
-		OnTableSearch: func(ctx *runner.Context, req *request.OnTableSearch) (*response.OnTableSearch, error) {
+		OnTableSearch: func(ctx *runner.Context, req *callback.OnTableSearch) (*response.OnTableSearch, error) {
 			logrus.Infof("搜索表格: %v", req.Cond)
 			return nil, nil
 		},
