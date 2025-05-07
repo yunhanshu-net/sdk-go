@@ -2,7 +2,6 @@ module github.com/yunhanshu-net/sdk-go
 
 go 1.23.0
 
-toolchain go1.23.2
 
 require (
 	github.com/bytedance/sonic v1.12.10
