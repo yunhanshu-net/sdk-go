@@ -4,7 +4,6 @@ go 1.23.0
 
 
 require (
-	github.com/bytedance/sonic v1.12.10
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/google/uuid v1.6.0
 	github.com/natefinch/lumberjack v2.0.0+incompatible
@@ -19,12 +18,9 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.4.0 // indirect
-	github.com/bytedance/sonic/loader v0.2.2 // indirect
-	github.com/cloudwego/base64x v0.1.5 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/nats-io/nkeys v0.4.9 // indirect
@@ -32,11 +28,9 @@ require (
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
-	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/xuri/efp v0.0.0-20240408161823-9ad904a10d6d // indirect
 	github.com/xuri/nfp v0.0.0-20240318013403-ab9948c2c4a7 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
-	golang.org/x/arch v0.0.0-20210923205945-b76863e36670 // indirect
 	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect

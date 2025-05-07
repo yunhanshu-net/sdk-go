@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/bytedance/sonic"
 	"github.com/yunhanshu-net/sdk-go/model/response"
 )
 
@@ -110,7 +109,7 @@ func doCall(method string, meta *runtimeMeta, ctx *Context, resp *response.Data,
 		} else {
 			switch body.(type) {
 			case string:
-				err = sonic.Unmarshal([]byte(body.(string)), req)
+				err = json.Unmarshal([]byte(body.(string)), req)
 				if err != nil {
 					return fmt.Errorf("JSON解析失败: %w", err)
 				}

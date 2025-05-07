@@ -1,7 +1,7 @@
 package response
 
 import (
-	"github.com/bytedance/sonic"
+	"encoding/json"
 	"net/http"
 )
 
@@ -66,7 +66,7 @@ func (j *formData) Build() error {
 		TraceID:  j.TraceID,
 		MetaData: j.MetaData,
 	}
-	marshal, err := sonic.Marshal(r)
+	marshal, err := json.Marshal(r)
 	if err != nil {
 		return err
 	}
