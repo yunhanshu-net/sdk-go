@@ -132,13 +132,13 @@ type Params struct {
 
 type ParamInfo struct {
 	//英文标识
-	Code string `json:"code,omitempty"`
+	Code string `json:"code"`
 	//中文名称
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
 	//中文介绍
-	Desc string `json:"desc,omitempty"`
+	Desc string `json:"desc"`
 	//是否必填
-	Required bool `json:"required,omitempty"`
+	Required bool `json:"required"`
 
 	Widget render2.Widget `json:"widget"`
 }
