@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bytedance/sonic"
 	"github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
 	"github.com/yunhanshu-net/sdk-go/model"
@@ -226,12 +225,12 @@ func (r *Runner) run(ctx context.Context, req *request.RunnerRequest) {
 				"error": err.Error(),
 			},
 		}
-		marshal, _ := sonic.Marshal(errorResp)
+		marshal, _ := json.Marshal(errorResp)
 		fmt.Println("<Response>" + string(marshal) + "</Response>")
 		return
 	}
 
-	marshal, err := sonic.Marshal(resp)
+	marshal, err := json.Marshal(resp)
 	if err != nil {
 		logrus.Errorf("响应序列化失败: %s", err.Error())
 		fmt.Println("<Response>{\"code\":500,\"msg\":\"响应序列化失败\"}</Response>")
