@@ -16,22 +16,22 @@ type InputWidget struct {
 	//file(文件上传组件)
 
 	//input
-	Widget string `json:"widget,omitempty"`
+	Widget string `json:"widget"`
 	//数据类型，string，number，time，float
 	Type string `json:"type"`
 	//输入框的类型，常规输入框还是文本域
 	//line_text(默认),text_area
-	Mode string `json:"mode,omitempty"`
+	Mode string `json:"mode"`
 	//文本限制输入框的文本限制ps:1-100
-	TextLimit string `json:"text_limit,omitempty"`
+	TextLimit string `json:"text_limit"`
 	//占位符（文本框提示信息）
-	Placeholder string `json:"placeholder,omitempty"`
+	Placeholder string `json:"placeholder"`
 	//数值限制ps：1-100
-	NumberLimit string `json:"number_limit,omitempty"`
+	NumberLimit string `json:"number_limit"`
 	//默认值
-	DefaultValue string `json:"default_value,omitempty"`
+	DefaultValue string `json:"default_value"`
 	//示例数据
-	Example string `json:"example,omitempty"`
+	Example string `json:"example"`
 }
 
 // newInputWidget 创建输入框组件
