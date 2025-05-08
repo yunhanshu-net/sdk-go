@@ -18,7 +18,6 @@ func NewRequestParams(el interface{}, t string) (*Params, error) {
 	if typeOf.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("输入参数仅支持Struct类型")
 	}
-
 	reqFields, err := tagx.ParseStructFieldsTypeOf(typeOf, "runner")
 	if err != nil {
 		return nil, err
