@@ -26,7 +26,7 @@ type InputWidget struct {
 	TextLimit string `json:"text_limit"`
 	//占位符（文本框提示信息）
 	Placeholder string `json:"placeholder"`
-	//数值限制ps：1-100
+	//数值限制ps：[-20000,10000]
 	NumberLimit string `json:"number_limit"`
 	//默认值
 	DefaultValue string `json:"default_value"`

@@ -88,7 +88,6 @@ func newParamInfo(tag *tagx.FieldInfo) (*ParamInfo, error) {
 		} else {
 			p.Required = required == "true"
 		}
-		return p, nil
 	}
 
 	if p.Code == "" {
