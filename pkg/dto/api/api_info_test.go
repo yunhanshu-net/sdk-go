@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 )
@@ -18,4 +19,9 @@ func TestName(t *testing.T) {
 		panic(err)
 	}
 	fmt.Println(params)
+	marshal, err := json.Marshal(params)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(marshal))
 }
