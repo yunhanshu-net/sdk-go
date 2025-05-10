@@ -14,12 +14,12 @@ func NewWidget(info *tagx.FieldInfo) (Widget, error) {
 	switch widgetType {
 	case WidgetInput:
 		return NewInputWidget(info)
-		//case WidgetCheckbox:
-		//	return newCheckboxWidget(info)
-		//case WidgetRadio:
-		//	return newRadioWidget(info)
-		//case WidgetSelect:
-		//	return newSelectWidget(info)
+	//case WidgetCheckbox:
+	//	return newCheckboxWidget(info)
+	//case WidgetRadio:
+	//	return newRadioWidget(info)
+	case WidgetSelect:
+		return NewSelectWidget(info)
 		//case WidgetSwitch:
 		//	return newSwitchWidget(info)
 		//case WidgetSlider:

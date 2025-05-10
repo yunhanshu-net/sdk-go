@@ -20,7 +20,6 @@ type InputWidget struct {
 
 	//input
 	//input
-	widgetType string
 	//输入框的类型，常规输入框还是文本域
 	//line_text(默认),text_area
 	Mode string `json:"mode"`
@@ -47,7 +46,6 @@ func NewInputWidget(info *tagx.FieldInfo) (*InputWidget, error) {
 	}
 
 	input := &InputWidget{
-		widgetType:   types.WidgetInput,
 		Mode:         stringsx.DefaultString(info.Tags["mode"], "line_text"),
 		Placeholder:  info.Tags["placeholder"],
 		DefaultValue: info.Tags["default_value"],
@@ -56,5 +54,5 @@ func NewInputWidget(info *tagx.FieldInfo) (*InputWidget, error) {
 }
 
 func (w *InputWidget) GetWidgetType() string {
-	return w.widgetType
+	return types.WidgetInput
 }

@@ -48,7 +48,7 @@ type tableResp struct {
 	MetaData map[string]interface{} `json:"meta_data"`
 	Code     int                    `json:"code"`
 	Msg      string                 `json:"msg"`
-	DataType DataType               `json:"data_type"`
+	DataType RenderType             `json:"data_type"`
 	Data     interface{}            `json:"data"`
 }
 
@@ -103,13 +103,13 @@ func (t *tableData) Build() error {
 
 	t.columns = columns
 	t.values = values
-	t.response.DataType = DataTypeTable
+	t.response.RenderType = RenderTypeTable
 	err := t.buildJSON()
 	if err != nil {
 		return err
 	}
 	t.response.Multiple = false
-	t.response.DataType = t.DataType()
+	t.response.RenderType = t.DataType()
 	return nil
 }
 
@@ -160,7 +160,7 @@ func (t *tableData) buildJSON() error {
 		MetaData: nil,
 		Code:     successCode,
 		Msg:      successMsg,
-		DataType: DataTypeTable,
+		DataType: RenderTypeTable,
 		Data: table{
 			Title:      t.title,
 			Column:     t.columns,
@@ -174,13 +174,13 @@ func (t *tableData) buildJSON() error {
 
 func (t *tableData) BuildJSON() string {
 	t.response.Multiple = false
-	t.response.DataType = t.DataType()
+	t.response.RenderType = t.DataType()
 	t.response.Body = t.buildData
 	return t.buildData
 }
 
-func (t *tableData) DataType() DataType {
-	return DataTypeTable
+func (t *tableData) DataType() RenderType {
+	return RenderTypeTable
 }
 
 func parserTableInfo(row interface{}) []column {

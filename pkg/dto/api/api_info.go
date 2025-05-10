@@ -3,6 +3,9 @@ package api
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"github.com/yunhanshu-net/sdk-go/model/response"
+	"github.com/yunhanshu-net/sdk-go/pkg/common/slicesx"
+	"github.com/yunhanshu-net/sdk-go/pkg/stringsx"
 	"github.com/yunhanshu-net/sdk-go/pkg/tagx"
 	"github.com/yunhanshu-net/sdk-go/view/widget"
 	"github.com/yunhanshu-net/sdk-go/view/widget/types"
@@ -34,10 +37,10 @@ func NewRequestParams(el interface{}, t string) (*Params, error) {
 		children = append(children, info)
 	}
 
-	return &Params{RenderType: t, Children: children}, nil
+	return &Params{RenderType: stringsx.DefaultString(t, response.RenderTypeForm), Children: children}, nil
 }
 
-func NewResponseParams(el interface{}, t string) (*Params, error) {
+func NewResponseParams(el interface{}, renderType string) (*Params, error) {
 
 	rspType := reflect.TypeOf(el)
 	logrus.Info("rspType: kind", rspType.Kind())
@@ -53,7 +56,7 @@ func NewResponseParams(el interface{}, t string) (*Params, error) {
 		if err != nil {
 			return nil, err
 		}
-		paramsOut, err := newParams(resFields, t)
+		paramsOut, err := newParams(resFields, renderType)
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +70,7 @@ func NewResponseParams(el interface{}, t string) (*Params, error) {
 		if err != nil {
 			return nil, err
 		}
-		paramsOut, err := newParams(of, t)
+		paramsOut, err := newParams(of, renderType)
 		if err != nil {
 			return nil, err
 		}
@@ -92,13 +95,16 @@ func newParamInfo(tag *tagx.FieldInfo) (*ParamInfo, error) {
 	if !types.IsValueType(valueType) {
 		return nil, fmt.Errorf("不是合法的值类型：%s", valueType)
 	}
+	validate := tag.Type.Tag.Get("validate")
+	split := strings.Split(validate, ",")
 
 	param := &ParamInfo{
 		Code:         tag.Tags["code"],
 		Name:         tag.Tags["name"],
 		Desc:         tag.Tags["desc"],
-		Validates:    tag.Type.Tag.Get("validate"),
-		Callbacks:    tag.Type.Tag.Get("callback"),
+		Required:     slicesx.ContainsString(split, "required"),
+		Validates:    strings.Join(slicesx.RemoveString(split, "required"), ","),
+		Callbacks:    tag.Tags["callback"],
 		WidgetConfig: widgetIns,
 		WidgetType:   widgetIns.GetWidgetType(),
 		ValueType:    types.UseValueType(tag.Tags["type"], valueType),
@@ -119,7 +125,7 @@ func newParamInfo(tag *tagx.FieldInfo) (*ParamInfo, error) {
 	return param, nil
 }
 
-func newParams(fields []*tagx.FieldInfo, t string) (*Params, error) {
+func newParams(fields []*tagx.FieldInfo, renderType string) (*Params, error) {
 	//	判断不同数据类型form,table,echarts,bi,3D ....
 	children := make([]*ParamInfo, 0, len(fields))
 	for _, field := range fields {
@@ -130,7 +136,7 @@ func newParams(fields []*tagx.FieldInfo, t string) (*Params, error) {
 		children = append(children, info)
 	}
 
-	return &Params{RenderType: t, Children: children}, nil
+	return &Params{RenderType: stringsx.DefaultString(renderType, response.RenderTypeForm), Children: children}, nil
 }
 
 type Params struct {

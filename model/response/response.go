@@ -13,7 +13,7 @@ type Data struct {
 	StatusCode int                    `json:"status_code"` //http对应http code 正常200
 	Msg        string                 `json:"msg"`
 	Headers    map[string]string      `json:"headers"`
-	DataType   DataType               `json:"data_type"`
+	RenderType RenderType             `json:"render_type"`
 	Body       interface{}            `json:"body"`
 	Multiple   bool                   `json:"multiple"` //是否是多个数据类型？比如返回
 	data       anyData

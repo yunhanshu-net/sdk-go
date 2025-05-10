@@ -1,13 +1,13 @@
 package response
 
-type DataType string
+type RenderType string
 
 const (
-	DataTypeForm    = "form"
-	DataTypeJSON    = "json"
-	DataTypeTable   = "table"
-	DataTypeFiles   = "files"
-	DataTypeEcharts = "echarts"
+	RenderTypeForm    = "form"
+	RenderTypeJSON    = "json"
+	RenderTypeTable   = "table"
+	RenderTypeFiles   = "files"
+	RenderTypeEcharts = "echarts"
 )
 
 type Builder interface {
@@ -17,5 +17,5 @@ type Builder interface {
 type anyData interface {
 	Builder
 	BuildJSON() string
-	GetDataType() DataType
+	GetRenderType() RenderType
 }

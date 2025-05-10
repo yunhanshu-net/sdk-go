@@ -7,7 +7,7 @@ type JSON interface {
 }
 
 func (r *Data) JSON(data interface{}) error {
-	r.DataType = DataTypeJSON
+	r.RenderType = RenderTypeJSON
 	r.Body = data
 	r.StatusCode = http.StatusOK
 	return nil

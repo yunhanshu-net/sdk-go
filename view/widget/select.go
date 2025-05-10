@@ -1,87 +1,46 @@
 package widget
 
-import "github.com/yunhanshu-net/sdk-go/pkg/tagx"
+import (
+	"errors"
+	"github.com/yunhanshu-net/sdk-go/pkg/tagx"
+	"github.com/yunhanshu-net/sdk-go/view/widget/types"
+	"strings"
+)
 
 // SelectWidget 下拉框组件
 type SelectWidget struct {
-	// 组件类型，固定为select
-	Widget string `json:"widget"`
-	// 数据类型，一般为string或array
-	Type string `json:"type"`
 	// 选项列表
 	Options []string `json:"options"`
 	// 是否多选
 	Multiple bool `json:"multiple,omitempty"`
-	// 是否可搜索
-	Filterable bool `json:"filterable,omitempty"`
-	// 是否可清空
-	Clearable bool `json:"clearable,omitempty"`
-	// 占位符
-	Placeholder string `json:"placeholder,omitempty"`
+
 	// 默认值
-	DefaultValue interface{} `json:"default_value,omitempty"`
-	// 是否禁用
-	Disabled bool `json:"disabled,omitempty"`
-	// 尺寸：large, default, small
-	Size string `json:"size,omitempty"`
-	// 是否可创建新条目
-	AllowCreate bool `json:"allow_create,omitempty"`
-	// 是否显示全选选项
-	ShowAllOption bool `json:"show_all_option,omitempty"`
-	// 全选选项文本
-	AllOptionLabel string `json:"all_option_label,omitempty"`
+	DefaultValue string `json:"default_value,omitempty"`
 }
 
-// newSelectWidget 创建下拉框组件
-func newSelectWidget(info *tagx.FieldInfo) (Widget, error) {
-	select_ := &SelectWidget{
-		Widget: WidgetSelect,
-		Type:   TypeString,
+// NewSelectWidget 创建下拉框组件
+func NewSelectWidget(info *tagx.FieldInfo) (Widget, error) {
+	if info == nil {
+		return nil, errors.New("<UNK>")
 	}
-
+	if info.Tags == nil {
+		info.Tags = make(map[string]string)
+	}
+	select_ := &SelectWidget{
+		DefaultValue: info.Tags["default_value"],
+		Options:      strings.Split(info.Tags["options"], ","),
+	}
 	tag := info.Tags
 	if tag["options"] != "" {
-		select_.Options = []string{tag["options"]}
+		select_.Options = strings.Split(tag["options"], ",")
 	}
-
-	if tag["multiple"] != "" {
-		if tag["multiple"] == "true" {
-			select_.Multiple = true
-			select_.Type = TypeArray
-		}
-	}
-
-	if tag["filterable"] != "" {
-		if tag["filterable"] == "true" {
-			select_.Filterable = true
-		}
-	}
-
-	if tag["clearable"] != "" {
-		if tag["clearable"] == "true" {
-			select_.Clearable = true
-		}
-	}
-
-	if tag["placeholder"] != "" {
-		select_.Placeholder = tag["placeholder"]
-	}
-
-	if tag["default_value"] != "" {
-		select_.DefaultValue = tag["default_value"]
-	}
-
-	if tag["size"] != "" {
-		select_.Size = tag["size"]
+	if _, ok := tag["multiple"]; ok {
+		select_.Multiple = true
 	}
 
 	return select_, nil
 }
 
-func (w *SelectWidget) GetValueType() string {
-	return w.Type
-}
-
 func (w *SelectWidget) GetWidgetType() string {
-	return w.Widget
+	return types.WidgetSelect
 }
