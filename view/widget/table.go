@@ -1,4 +1,4 @@
-package render
+package widget
 
 // TableWidget 表格组件
 type TableWidget struct {
@@ -46,10 +46,10 @@ type TableColumn struct {
 	Formatter string `json:"formatter,omitempty"`
 }
 
-func (w *TableWidget) GetType() string {
+func (w *TableWidget) GetValueType() string {
 	return w.Type
 }
 
-func (w *TableWidget) GetWidget() string {
+func (w *TableWidget) GetWidgetType() string {
 	return w.Widget
 }

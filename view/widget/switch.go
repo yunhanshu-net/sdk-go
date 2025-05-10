@@ -1,4 +1,4 @@
-package render
+package widget
 
 import "github.com/yunhanshu-net/sdk-go/pkg/tagx"
 
@@ -65,10 +65,10 @@ func newSwitchWidget(info *tagx.FieldInfo) (Widget, error) {
 	return switch_, nil
 }
 
-func (w *SwitchWidget) GetType() string {
+func (w *SwitchWidget) GetValueType() string {
 	return w.Type
 }
 
-func (w *SwitchWidget) GetWidget() string {
+func (w *SwitchWidget) GetWidgetType() string {
 	return w.Widget
 }

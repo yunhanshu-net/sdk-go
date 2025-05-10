@@ -32,7 +32,7 @@ type ApiConfig struct {
 	ParamsOut   []FuncParam `json:"params_out"`
 
 	//form，table，
-	RenderType string `json:"render"`
+	RenderType string `json:"widget"`
 
 	UseTables []interface{} `json:"use_tables"` //这里注册使用到的数据表
 	UseDB     []string      `json:"use_db"`     //用到的db文件
@@ -50,10 +50,15 @@ type ApiConfig struct {
 	AfterRunnerClose  AfterRunnerClose  `json:"-"`
 	OnVersionChange   OnVersionChange   `json:"-"`
 
-	OnInputFuzzy    OnInputFuzzy    `json:"-"`
-	OnInputValidate OnInputValidate `json:"-"`
+	OnInputFuzzy    OnInputFuzzy    `json:"-"` //这两个可以删掉
+	OnInputValidate OnInputValidate `json:"-"` //这两个可以删掉
 
 	OnTableDeleteRows OnTableDeleteRows `json:"-"`
 	OnTableUpdateRow  OnTableUpdateRow  `json:"-"`
 	OnTableSearch     OnTableSearch     `json:"-"`
+
+	OnInputFuzzyMap    map[string]OnInputFuzzy    `json:"-"` //key是字段的code，字段级回调
+	OnInputValidateMap map[string]OnInputValidate `json:"-"` //key是字段的code，字段级回调
+
+	//用map的都是字段级别的回调，其他的都是接口级别回调
 }

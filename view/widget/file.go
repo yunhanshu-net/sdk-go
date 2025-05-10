@@ -1,4 +1,4 @@
-package render
+package widget
 
 import "github.com/yunhanshu-net/sdk-go/pkg/tagx"
 
@@ -97,10 +97,10 @@ func newFileWidget(info *tagx.FieldInfo) (Widget, error) {
 	return file, nil
 }
 
-func (w *FileWidget) GetType() string {
+func (w *FileWidget) GetValueType() string {
 	return w.Type
 }
 
-func (w *FileWidget) GetWidget() string {
+func (w *FileWidget) GetWidgetType() string {
 	return w.Widget
 }

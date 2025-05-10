@@ -1,4 +1,4 @@
-package render
+package widget
 
 // UploadWidget 文件上传组件
 type UploadWidget struct {
@@ -24,10 +24,10 @@ type UploadWidget struct {
 	ListType string `json:"list_type,omitempty"`
 }
 
-func (w *UploadWidget) GetType() string {
+func (w *UploadWidget) GetValueType() string {
 	return w.Type
 }
 
-func (w *UploadWidget) GetWidget() string {
+func (w *UploadWidget) GetWidgetType() string {
 	return w.Widget
 }

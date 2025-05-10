@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/yunhanshu-net/sdk-go/pkg/tagx"
-	render2 "github.com/yunhanshu-net/sdk-go/view/render"
+	"github.com/yunhanshu-net/sdk-go/view/widget"
+	"github.com/yunhanshu-net/sdk-go/view/widget/types"
 	"reflect"
 	"strings"
 )
@@ -74,37 +75,48 @@ func NewResponseParams(el interface{}, t string) (*Params, error) {
 	}
 }
 func newParamInfo(tag *tagx.FieldInfo) (*ParamInfo, error) {
-	p := &ParamInfo{
-		Code: tag.Tags["code"],
-		Name: tag.Tags["name"],
-		Desc: tag.Tags["desc"],
+	if tag == nil {
+		return nil, fmt.Errorf("tag==nil")
 	}
-
-	required, ok := tag.Tags["required"]
-	if ok {
-		if required == "" {
-			p.Required = true
-		} else {
-			p.Required = required == "true"
-		}
+	if tag.Tags == nil {
+		tag.Tags = map[string]string{}
 	}
-
-	if p.Code == "" {
-		get := tag.Type.Tag.Get("json")
-		if get != "" {
-			p.Code = strings.Split(get, ",")[0]
-		}
-	}
-
-	if p.Name == "" {
-		p.Name = p.Code
-	}
-	widget, err := render2.NewWidget(tag)
+	widgetIns, err := widget.NewWidget(tag)
 	if err != nil {
 		return nil, err
 	}
-	p.Widget = widget
-	return p, nil
+	valueType, err := tag.GetValueType()
+	if err != nil {
+		return nil, err
+	}
+	if !types.IsValueType(valueType) {
+		return nil, fmt.Errorf("不是合法的值类型：%s", valueType)
+	}
+
+	param := &ParamInfo{
+		Code:         tag.Tags["code"],
+		Name:         tag.Tags["name"],
+		Desc:         tag.Tags["desc"],
+		Validates:    tag.Type.Tag.Get("validate"),
+		Callbacks:    tag.Type.Tag.Get("callback"),
+		WidgetConfig: widgetIns,
+		WidgetType:   widgetIns.GetWidgetType(),
+		ValueType:    types.UseValueType(tag.Tags["type"], valueType),
+		Example:      tag.Tags["example"],
+	}
+
+	if param.Code == "" {
+		get := tag.Type.Tag.Get("json")
+		if get != "" {
+			param.Code = strings.Split(get, ",")[0]
+		}
+	}
+
+	if param.Name == "" {
+		param.Name = param.Code
+	}
+
+	return param, nil
 }
 
 func newParams(fields []*tagx.FieldInfo, t string) (*Params, error) {
@@ -138,7 +150,12 @@ type ParamInfo struct {
 	//是否必填
 	Required bool `json:"required"`
 
-	Widget render2.Widget `json:"widget"`
+	Callbacks    string        `json:"callbacks"`
+	Validates    string        `json:"validates"`
+	WidgetConfig widget.Widget `json:"widget_config"`
+	WidgetType   string        `json:"widget_type"`
+	ValueType    string        `json:"value_type"`
+	Example      string        `json:"example"`
 }
 
 type Info struct {

@@ -1,4 +1,4 @@
-package render
+package widget
 
 // DateTimeWidget 日期时间选择器组件
 type DateTimeWidget struct {
@@ -22,10 +22,10 @@ type DateTimeWidget struct {
 	Disabled bool `json:"disabled,omitempty"`
 }
 
-func (w *DateTimeWidget) GetType() string {
+func (w *DateTimeWidget) GetValueType() string {
 	return w.Type
 }
 
-func (w *DateTimeWidget) GetWidget() string {
+func (w *DateTimeWidget) GetWidgetType() string {
 	return w.Widget
 }

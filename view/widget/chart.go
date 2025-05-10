@@ -1,4 +1,4 @@
-package render
+package widget
 
 // ChartWidget 图表组件
 type ChartWidget struct {
@@ -28,10 +28,10 @@ type ChartWidget struct {
 	Theme string `json:"theme,omitempty"`
 }
 
-func (w *ChartWidget) GetType() string {
+func (w *ChartWidget) GetValueType() string {
 	return w.Type
 }
 
-func (w *ChartWidget) GetWidget() string {
+func (w *ChartWidget) GetWidgetType() string {
 	return w.Widget
 }

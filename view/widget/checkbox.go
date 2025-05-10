@@ -1,4 +1,4 @@
-package render
+package widget
 
 import "github.com/yunhanshu-net/sdk-go/pkg/tagx"
 
@@ -63,10 +63,10 @@ func newCheckboxWidget(info *tagx.FieldInfo) (Widget, error) {
 	return checkbox, nil
 }
 
-func (w *CheckboxWidget) GetType() string {
+func (w *CheckboxWidget) GetValueType() string {
 	return w.Type
 }
 
-func (w *CheckboxWidget) GetWidget() string {
+func (w *CheckboxWidget) GetWidgetType() string {
 	return w.Widget
 }

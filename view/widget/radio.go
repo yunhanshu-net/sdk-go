@@ -1,4 +1,4 @@
-package render
+package widget
 
 import "github.com/yunhanshu-net/sdk-go/pkg/tagx"
 
@@ -49,10 +49,10 @@ func newRadioWidget(info *tagx.FieldInfo) (Widget, error) {
 	return radio, nil
 }
 
-func (w *RadioWidget) GetType() string {
+func (w *RadioWidget) GetValueType() string {
 	return w.Type
 }
 
-func (w *RadioWidget) GetWidget() string {
+func (w *RadioWidget) GetWidgetType() string {
 	return w.Widget
 }

@@ -1,4 +1,4 @@
-package render
+package widget
 
 import "github.com/yunhanshu-net/sdk-go/pkg/tagx"
 
@@ -88,10 +88,10 @@ type SliderWidget struct {
 	Unit string `json:"unit,omitempty"`
 }
 
-func (w *SliderWidget) GetType() string {
+func (w *SliderWidget) GetValueType() string {
 	return w.Type
 }
 
-func (w *SliderWidget) GetWidget() string {
+func (w *SliderWidget) GetWidgetType() string {
 	return w.Widget
 }

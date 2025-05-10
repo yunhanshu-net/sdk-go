@@ -1,4 +1,4 @@
-package render
+package widget
 
 // 基础输入组件类型
 const (
