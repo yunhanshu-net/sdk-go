@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/yunhanshu-net/sdk-go/pkg/constants"
 	"github.com/yunhanshu-net/sdk-go/pkg/logger"
-	"os"
 	"runtime"
 	"runtime/debug"
 	"strings"
@@ -44,11 +43,16 @@ type Runner struct {
 	down          chan struct{}
 }
 
+func isStaticRouter(router string) bool {
+	switch router {
+	case "_env", "_help", "/_getApiInfos":
+		return true
+	}
+	return false
+}
+
 // init 初始化Runner
 func (r *Runner) init(args []string) error {
-	if len(args) < 3 {
-		return fmt.Errorf("参数不足，至少需要3个参数")
-	}
 
 	r.args = args
 	r.detail = &model.Runner{}
@@ -70,6 +74,10 @@ func (r *Runner) init(args []string) error {
 	// 注册内置路由
 	r.registerBuiltInRouters()
 
+	if isStaticRouter(r.args[1]) {
+		r.run(&Context{Context: context.Background()}, &request.RunnerRequest{Request: request.NewRequest(r.args[1], "GET")})
+		return nil
+	}
 	// 获取请求
 	req, err := r.getRequest(r.args[2])
 	if err != nil {
@@ -125,6 +133,7 @@ func (r *Runner) init(args []string) error {
 // registerBuiltInRouters 注册内置路由
 func (r *Runner) registerBuiltInRouters() {
 	r.get("/_env", env)
+	r.get("/_help", r.help)
 	r.get("/_ping", ping)
 	r.get("/_getApiInfos", r._getApiInfos)
 	r.get("/_getApiInfo", r._getApiInfo)
@@ -135,9 +144,9 @@ func (r *Runner) registerBuiltInRouters() {
 // getRequest 从文件获取请求
 func (r *Runner) getRequest(filePath string) (*request.RunnerRequest, error) {
 	// 检查文件是否存在
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		return nil, fmt.Errorf("请求文件不存在: %s", filePath)
-	}
+	//if _, err := os.Stat(filePath); os.IsNotExist(err) {
+	//	return nil, fmt.Errorf("请求文件不存在: %s", filePath)
+	//}
 
 	var req request.RunnerRequest
 	req.Request = new(request.Request)
@@ -180,7 +189,11 @@ func (r *Runner) runRequest(ctx context.Context, req *request.Request) (*respons
 		}()
 
 		start := time.Now()
+		var mStart runtime.MemStats
+		var mEnd runtime.MemStats
+		runtime.ReadMemStats(&mStart)
 		_, rsp, callErr := router.call(ctx, req.Body)
+		runtime.ReadMemStats(&mEnd)
 		if callErr != nil {
 			err = fmt.Errorf("路由调用失败: %w", callErr)
 			return
@@ -193,6 +206,7 @@ func (r *Runner) runRequest(ctx context.Context, req *request.Request) (*respons
 		}
 		rsp.MetaData["cost"] = elapsed.String()
 		rsp.MetaData["memory"] = getMemoryUsage()
+		rsp.MetaData["cost_memory"] = fmt.Sprintf("%v", mEnd.Alloc-mStart.Alloc)
 
 		result = rsp
 	}()

@@ -12,6 +12,15 @@ func env(ctx *Context, req *request.NoData, resp response.Response) error {
 	return resp.Form(map[string]string{"version": "1.0", "lang": "go"}).Build()
 }
 
+func (r *Runner) help(ctx *Context, req *request.NoData, resp response.Response) error {
+	s := ""
+
+	for _, info := range r.routerMap {
+		s += info.Method + ":" + info.Router
+	}
+	return resp.Form(map[string]string{"router": s}).Build()
+}
+
 func ping(ctx *Context, req *request.NoData, resp response.Response) error {
 	return resp.Form(map[string]string{"ping": "pong"}).Build()
 }
@@ -113,15 +122,15 @@ func (r *Runner) getApiInfo(req *request.ApiInfoRequest) (*api.Info, error) {
 func (r *Runner) _getApiInfos(ctx *Context, req *request.NoData, resp response.Response) error {
 	apis, err := r.getApiInfos()
 	if err != nil {
-		return resp.FailWithJSON(nil, err.Error())
+		return err
 	}
-	return resp.Form(apis).Build()
+	return resp.JSON(apis)
 }
 
 func (r *Runner) _getApiInfo(ctx *Context, req *request.ApiInfoRequest, resp response.Response) error {
 	apiInfo, err := r.getApiInfo(req)
 	if err != nil {
-		return resp.FailWithJSON(nil, err.Error())
+		return err
 	}
 	// 返回API信息
 	return resp.Form(apiInfo).Build()

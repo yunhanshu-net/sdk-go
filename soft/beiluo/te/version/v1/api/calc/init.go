@@ -1,0 +1,5 @@
+package calc
+
+func Init() {
+
+}

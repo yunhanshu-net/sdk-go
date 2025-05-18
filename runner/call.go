@@ -11,11 +11,6 @@ import (
 
 func (r *Runner) call(msg *nats.Msg) ([]byte, error) {
 
-	//router, exist := r.getRouter(req.Request.Route, req.Request.Method)
-	//if !exist {
-	//	logrus.Errorf("call getRouter 404,%s %s", req.Request.Method, req.Request.Route)
-	//	return nil, fmt.Errorf("call getRouter 404,%s %s", req.Request.Method, req.Request.Route)
-	//}
 	data := msg.Data
 	var req request.RunnerRequest
 	err1 := json.Unmarshal(data, &req)

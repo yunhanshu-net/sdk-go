@@ -3,58 +3,8 @@ package request
 import (
 	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"strings"
 )
-
-type Paginated struct {
-	Data        interface{} `json:"data"`
-	CurrentPage int         `json:"current_page"` // 当前页码
-	TotalCount  int         `json:"total_count"`  // 总数据量
-	TotalPages  int         `json:"total_pages"`  // 总页数
-	PageSize    int         `json:"page_size"`    // 每页数量
-}
-
-func AutoPaginated(db *gorm.DB, model interface{}, data interface{}, pageInfo *PageInfo) (*Paginated, error) {
-
-	if pageInfo == nil {
-		pageInfo = new(PageInfo)
-	}
-	// 获取分页大小
-	pageSize := pageInfo.GetLimit()
-	offset := pageInfo.GetOffset()
-
-	// 查询总数
-	var totalCount int64
-	if err := db.Model(model).Count(&totalCount).Error; err != nil {
-		return nil, fmt.Errorf("AutoPaginated.Count :%+v failed to count records: %v", data, err)
-
-	}
-
-	if pageInfo.GetSorts() != "" {
-		db.Order(pageInfo.GetSorts())
-	}
-	// 查询当前页数据
-	if err := db.Offset(offset).Limit(pageSize).Find(data).Error; err != nil {
-		return nil, fmt.Errorf("AutoPaginated.Find :%+v failed to count records: %v", data, err)
-	}
-
-	// 计算总页数
-	totalPages := int(totalCount) / pageSize
-	if int(totalCount)%pageSize != 0 {
-		totalPages++
-	}
-
-	// 构造分页结果
-	return &Paginated{
-		Data:        data,
-		CurrentPage: pageInfo.Page,
-		TotalCount:  int(totalCount),
-		TotalPages:  totalPages,
-		PageSize:    pageSize,
-	}, nil
-
-}
 
 type PageInfo struct {
 	Page     int `json:"page" form:"page"`

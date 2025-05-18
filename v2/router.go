@@ -1,22 +1,18 @@
-package runner
+package v2
 
 import (
 	"context"
-	"github.com/yunhanshu-net/sdk-go/model/request"
-	"github.com/yunhanshu-net/sdk-go/model/response"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/request"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/response"
 	"strings"
 )
 
 type routerInfo struct {
-	Handel interface{} `json:"-"`
-	key    string
-	Router string
-	Method string
-	Config *ApiConfig
-}
-
-func (r *routerInfo) IsDefaultRouter() bool {
-	return strings.HasPrefix(strings.TrimPrefix(r.Router, "/"), "_")
+	Handel  interface{} `json:"-"`
+	key     string
+	Router  string
+	Method  string
+	ApiInfo *ApiInfo
 }
 
 func fmtKey(router string, method string) string {
@@ -27,7 +23,13 @@ func fmtKey(router string, method string) string {
 	return router + "." + strings.ToUpper(method)
 }
 
-func (r *routerInfo) call(ctx context.Context, reqBody interface{}) (req *request.Request, resp *response.Data, err error) {
+// getRouter 获取路由
+func (r *Runner) getRouter(router string, method string) (worker *routerInfo, exist bool) {
+	worker, ok := r.routerMap[fmtKey(router, method)]
+	return worker, ok
+}
+
+func (r *routerInfo) call(ctx context.Context, reqBody interface{}) (req *requestv2.RunFunctionReq, resp *response.RunFunctionResp, err error) {
 	// 使用读锁访问缓存
 	handlerCacheMux.RLock()
 	meta, ok := handlerCacheMap[r.key]
@@ -55,8 +57,8 @@ func (r *routerInfo) call(ctx context.Context, reqBody interface{}) (req *reques
 	if meta.initError != nil {
 		return nil, nil, meta.initError
 	}
-	req = new(request.Request)
-	resp = new(response.Data)
+	req = new(requestv2.RunFunctionReq)
+	resp = new(response.RunFunctionResp)
 	ctx1 := &Context{Context: ctx}
 	err = doCall(r.Method, meta.meta, ctx1, resp, reqBody)
 	if err != nil {

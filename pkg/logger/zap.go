@@ -114,7 +114,7 @@ func init() {
 		// 生产环境输出到文件
 		jsonEncoder := zapcore.NewJSONEncoder(config)
 		writer := &lumberjack.Logger{
-			Filename:   "logs/app.log",
+			Filename:   "logs/tencent_oaManage_v1.log",
 			MaxSize:    50,    // MB
 			MaxBackups: 10,    // 保留旧文件的最大数量
 			MaxAge:     30,    // 保留旧文件的最大天数
