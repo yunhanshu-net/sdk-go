@@ -21,7 +21,7 @@ type Form interface {
 }
 
 type Response interface {
-	Form() Form
+	Form(data interface{}) Form
 }
 
 func (r *RunFunctionResp) Form(data interface{}) Form {

@@ -89,12 +89,12 @@ func (r *Runner) _callback(ctx *Context, req *callback2.Request, resp response.R
 		logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 		return err
 	}
-	if worker.Config == nil {
+	if worker.ApiInfo == nil {
 		err = fmt.Errorf("router config nil")
 		logger.InfoContextf(ctx, "回调处理失败 [类型:%s]: %v", req.Type, err)
 		return err
 	}
-	apiConf := worker.Config
+	apiConf := worker.ApiInfo
 
 	switch req.Type {
 	// 页面加载回调

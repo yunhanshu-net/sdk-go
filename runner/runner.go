@@ -4,25 +4,23 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/yunhanshu-net/sdk-go/pkg/constants"
-	"github.com/yunhanshu-net/sdk-go/pkg/logger"
-	"runtime"
-	"runtime/debug"
-	"strings"
-	"time"
-
 	"github.com/nats-io/nats.go"
-	"github.com/sirupsen/logrus"
-	"github.com/yunhanshu-net/sdk-go/model"
-	"github.com/yunhanshu-net/sdk-go/model/request"
-	"github.com/yunhanshu-net/sdk-go/model/response"
-	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
+	"github.com/yunhanshu-net/pkg/dto/runnerproject"
+	"github.com/yunhanshu-net/sdk-go/pkg/constants"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/request"
+	"github.com/yunhanshu-net/sdk-go/pkg/logger"
+	"time"
 )
 
 // New 创建一个新的Runner实例
 func New() *Runner {
+	runner, err := runnerproject.NewRunner(User, Name, Root, Version)
+	if err != nil {
+		panic(err)
+	}
 	return &Runner{
 		idle:      5,
+		detail:    runner,
 		routerMap: make(map[string]*routerInfo),
 		down:      make(chan struct{}, 1),
 	}
@@ -31,9 +29,8 @@ func New() *Runner {
 // Runner 运行器结构体
 type Runner struct {
 	isDebug       bool
-	detail        *model.Runner
+	detail        *runnerproject.Runner
 	uuid          string
-	args          []string
 	idle          int64
 	lastHandelTs  time.Time
 	isClosed      bool
@@ -43,233 +40,188 @@ type Runner struct {
 	down          chan struct{}
 }
 
-func isStaticRouter(router string) bool {
-	switch router {
-	case "_env", "_help", "/_getApiInfos":
-		return true
+func (r *Runner) call(ctx context.Context, msg *nats.Msg) ([]byte, error) {
+
+	data := msg.Data
+	var req request.RunFunctionReq
+	err1 := json.Unmarshal(data, &req)
+	if err1 != nil {
+		logger.Errorf("call  json.Unmarshal(data, &req) err,req:%+v err:%s", req, err1.Error())
+		return nil, fmt.Errorf("call  json.Unmarshal(data, &req) err,req:%+v err:%s", req, err1.Error())
 	}
-	return false
+
+	runResponse, err1 := r.runFunction(ctx, &req)
+	if err1 != nil {
+		logger.Errorf("call runRequest err,req:%+v err:%s", req, err1.Error())
+		return nil, fmt.Errorf("call runRequest err,req:%+v err:%s", req, err1.Error())
+	}
+	marshal, err1 := json.Marshal(runResponse)
+	if err1 != nil {
+		logger.Errorf("call json.Marshal err,req:%+v err:%s", req, err1.Error())
+		return nil, fmt.Errorf("call json.Marshal err,req:%+v err:%s", req, err1.Error())
+	}
+
+	return marshal, nil
 }
 
-// init 初始化Runner
-func (r *Runner) init(args []string) error {
+// connectNats 连接到NATS服务器并设置订阅
+func (r *Runner) connectNats(ctx context.Context) error {
+	now := time.Now()
+	subject := r.detail.GetRequestSubject()
 
-	r.args = args
-	r.detail = &model.Runner{}
-
-	// 解析Runner名称
-	split := strings.Split(r.args[0], "_")
-	if len(split) > 1 {
-		r.detail.User = strings.ReplaceAll(split[0], "./", "")
-		r.detail.Name = split[1]
-	} else {
-		return fmt.Errorf("runner名称格式不正确: %s", r.args[0])
+	// 增加NATS连接选项
+	opts := []nats.Option{
+		nats.Name(fmt.Sprintf("runner_%s_%s_%s", r.detail.User, r.detail.Name, r.uuid)),
+		nats.ReconnectWait(time.Second),
+		nats.MaxReconnects(10),
+		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
+			logger.WarnContextf(ctx, "NATS连接断开: %v", err)
+		}),
+		nats.ReconnectHandler(func(nc *nats.Conn) {
+			logger.InfoContextf(ctx, "NATS已重新连接")
+		}),
+		nats.ErrorHandler(func(nc *nats.Conn, sub *nats.Subscription, err error) {
+			logger.ErrorContextf(ctx, "NATS错误: %v", err)
+		}),
 	}
 
-	logrus.Infof("Runner详情: %+v", r.detail)
-
-	// 设置最大处理器数量
-	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	// 注册内置路由
-	r.registerBuiltInRouters()
-
-	if isStaticRouter(r.args[1]) {
-		r.run(&Context{Context: context.Background()}, &request.RunnerRequest{Request: request.NewRequest(r.args[1], "GET")})
-		return nil
-	}
-	// 获取请求
-	req, err := r.getRequest(r.args[2])
-	if err != nil {
-		return fmt.Errorf("获取请求失败: %w", err)
-	}
-	var ctx context.Context
-	if req.Request != nil {
-		ctx = context.WithValue(context.Background(), constants.TraceID, req.Request.TraceID)
-	} else {
-		ctx = context.Background()
-	}
-
-	if req != nil {
-		r.detail = req.Runner
-		if r.uuid == "" {
-			r.uuid = req.UUID
-		}
-	}
-
-	// 处理连接模式
-	if r.args[1] == "_connect" {
-		if req.TransportConfig != nil && req.TransportConfig.IdleTime != 0 {
-			r.idle = int64(req.TransportConfig.IdleTime)
-		}
-
-		// 异步连接NATS
-		errChan := make(chan error, 1)
-		go func() {
-			err := r.connectNats(ctx)
-			if err != nil {
-				errChan <- err
-			}
-		}()
-
-		// 等待连接结果
-		select {
-		case err := <-errChan:
-			return fmt.Errorf("NATS连接失败: %w", err)
-		case <-time.After(5 * time.Second):
-			// 连接成功或超时
-		}
-
-		r.listen()
-		logrus.Infof("UUID: %s 监听已停止", r.uuid)
-		return nil
-	}
-
-	// 单次执行模式
-	r.run(ctx, req)
-	return nil
-}
-
-// registerBuiltInRouters 注册内置路由
-func (r *Runner) registerBuiltInRouters() {
-	r.get("/_env", env)
-	r.get("/_help", r.help)
-	r.get("/_ping", ping)
-	r.get("/_getApiInfos", r._getApiInfos)
-	r.get("/_getApiInfo", r._getApiInfo)
-	r.post("/_callback", r._callback)
-	r.post("/_sysCallback/sysOnVersionChange", r._sysOnVersionChange)
-}
-
-// getRequest 从文件获取请求
-func (r *Runner) getRequest(filePath string) (*request.RunnerRequest, error) {
-	// 检查文件是否存在
-	//if _, err := os.Stat(filePath); os.IsNotExist(err) {
-	//	return nil, fmt.Errorf("请求文件不存在: %s", filePath)
-	//}
-
-	var req request.RunnerRequest
-	req.Request = new(request.Request)
-	err := jsonx.UnmarshalFromFile(filePath, &req)
-	if err != nil {
-		return nil, fmt.Errorf("请求解析失败: %w", err)
-	}
-	return &req, nil
-}
-
-// getRouter 获取路由
-func (r *Runner) getRouter(router string, method string) (worker *routerInfo, exist bool) {
-	worker, ok := r.routerMap[fmtKey(router, method)]
-	return worker, ok
-}
-
-// runRequest 执行请求
-func (r *Runner) runRequest(ctx context.Context, req *request.Request) (*response.Data, error) {
-	router, exist := r.getRouter(req.Route, req.Method)
-	if !exist {
-		routersJSON, _ := json.Marshal(r.routerMap)
-		logger.ErrorContextf(ctx, "可用路由: %s", string(routersJSON))
-		return nil, fmt.Errorf("路由未找到: [%s] %s", req.Method, req.Route)
-	}
-
-	// 使用defer-recover处理panic
-	var result *response.Data
+	// 尝试连接NATS，带重试逻辑
+	var connect *nats.Conn
 	var err error
+	maxRetries := 3
 
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				stack := debug.Stack()
-				errMsg := fmt.Sprintf("请求处理panic: %v", r)
-				logger.ErrorContextf(ctx, "%s\n调用栈: %s", errMsg, stack)
-				err = fmt.Errorf(errMsg)
-				// 这里打印是方便我出现错误时候可以直接在控制台看到日志
-				fmt.Printf("err: %s\n调用栈: %s\n", errMsg, stack)
-			}
-		}()
+	for i := 0; i < maxRetries; i++ {
+		logger.Infof("正在连接NATS服务器 (尝试: %d/%d)", i+1, maxRetries)
+		connect, err = nats.Connect(nats.DefaultURL, opts...)
+		if err == nil {
+			break
+		}
+		logger.WarnContextf(ctx, "NATS连接失败，将在1秒后重试: %v", err)
+		time.Sleep(time.Second)
+	}
 
+	if err != nil {
+		return fmt.Errorf("无法连接NATS服务器: %w", err)
+	}
+
+	r.natsConn = connect
+
+	// 设置消息处理
+	subscribe, err := r.natsConn.QueueSubscribe(subject, subject, func(msg *nats.Msg) {
+		r.lastHandelTs = time.Now()
 		start := time.Now()
-		var mStart runtime.MemStats
-		var mEnd runtime.MemStats
-		runtime.ReadMemStats(&mStart)
-		_, rsp, callErr := router.call(ctx, req.Body)
-		runtime.ReadMemStats(&mEnd)
-		if callErr != nil {
-			err = fmt.Errorf("路由调用失败: %w", callErr)
+
+		// 创建响应消息
+		respMsg := nats.NewMsg(msg.Reply)
+		ctx1 := context.WithValue(context.Background(), constants.TraceID, msg.Header.Get(constants.TraceID))
+		rspData, err := r.call(ctx1, msg)
+
+		if err != nil {
+			respMsg.Header.Set("code", "-1")
+			respMsg.Header.Set("msg", err.Error())
+			logger.Errorf("处理请求失败: %v", err)
+		} else {
+			respMsg.Data = rspData
+			respMsg.Header.Set("code", "0")
+		}
+
+		// 响应请求
+		if err := msg.RespondMsg(respMsg); err != nil {
+			logger.ErrorContextf(ctx, "响应请求失败: %v", err)
 			return
 		}
 
-		// 记录执行时间
-		elapsed := time.Since(start)
-		if rsp.MetaData == nil {
-			rsp.MetaData = make(map[string]interface{})
-		}
-		rsp.MetaData["cost"] = elapsed.String()
-		rsp.MetaData["memory"] = getMemoryUsage()
-		rsp.MetaData["cost_memory"] = fmt.Sprintf("%v", mEnd.Alloc-mStart.Alloc)
-
-		result = rsp
-	}()
-
-	return result, err
-}
-
-// getMemoryUsage 获取内存使用情况
-func getMemoryUsage() string {
-	var m runtime.MemStats
-	runtime.ReadMemStats(&m)
-	return fmt.Sprintf("%.2f MB", float64(m.Alloc)/1024/1024)
-}
-
-// run 运行单次请求
-func (r *Runner) run(ctx context.Context, req *request.RunnerRequest) {
-	//ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer func() {
-		// 单次执行模式下，执行完请求后自动关闭资源
-		if !r.isDebug {
-			Shutdown()
-		}
-	}()
-
-	resp, err := r.runRequest(ctx, req.Request)
+		logger.DebugContextf(ctx, "请求处理完成，耗时: %v", time.Since(start))
+	})
+	logger.Infof("已连接到NATS服务器，监听主题: %s", subject)
 	if err != nil {
-		errorResp := &response.Data{
-			Msg: "请求处理失败",
-			MetaData: map[string]interface{}{
-				"error": err.Error(),
-			},
-		}
-		marshal, _ := json.Marshal(errorResp)
-		fmt.Println("<Response>" + string(marshal) + "</Response>")
-		return
+		return fmt.Errorf("无法订阅主题 %s: %w", subject, err)
 	}
 
-	marshal, err := json.Marshal(resp)
+	r.natsSubscribe = subscribe
+
+	logger.InfoContextf(ctx, "uuid: %s", r.uuid)
+	// 发送就绪消息
+	msg := nats.NewMsg(r.uuid)
+	msg.Header.Set("code", "0")
+
+	//ctx1, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	//defer cancel()
+
+	respMsg, err := r.natsConn.RequestMsg(msg, time.Second*5)
+
 	if err != nil {
-		logrus.Errorf("响应序列化失败: %s", err.Error())
-		fmt.Println("<Response>{\"code\":500,\"msg\":\"响应序列化失败\"}</Response>")
-		return
+		return fmt.Errorf("无法发送就绪消息: %w", err)
 	}
 
-	fmt.Println("<Response>" + string(marshal) + "</Response>")
+	if respMsg.Header.Get("code") == "0" {
+		logger.InfoContextf(ctx, "NATS连接成功，主题: %s，耗时: %v", subject, time.Since(now))
+	} else {
+		errMsg := respMsg.Header.Get("msg")
+		return fmt.Errorf("NATS连接处理错误: %s", errMsg)
+	}
+
+	return nil
 }
 
-// Run 运行Runner
-//func (r *Runner) Run() error {
-//	// 先初始化
-//	err := r.init(os.Args)
-//	if err != nil {
-//		return err
-//	}
-//
-//	// 如果不是连接模式，而是单次执行模式，这里已经执行完毕
-//	// 我们应该在这里释放资源，而不是依赖run方法
-//	if r.args[1] != "_connect" {
-//		// 在单次执行模式下，runner.go中的run方法已经处理了请求
-//		// 不需要再次调用Shutdown，避免重复关闭
-//	} else {
-//		// 在连接模式下，资源会在listen中通过信号处理或超时机制关闭
-//	}
-//
-//	return nil
-//}
+// close 安全关闭连接和订阅
+func (r *Runner) close(ctx context.Context) error {
+	// 防止重复关闭
+	if r.isClosed {
+		logger.DebugContextf(ctx, "Runner已经关闭，跳过")
+		return nil
+	}
+
+	// 标记为已关闭
+	r.isClosed = true
+	now := time.Now()
+
+	var closeErr error
+
+	// 1. 先尝试清理订阅
+	if r.natsSubscribe != nil {
+		subToClose := r.natsSubscribe
+		r.natsSubscribe = nil // 立即置空，防止重复关闭
+
+		if err := subToClose.Drain(); err != nil {
+			logger.DebugContextf(ctx, "清理订阅时出错: %v", err)
+			closeErr = fmt.Errorf("清理订阅错误: %w", err)
+			// 继续执行，不中断关闭流程
+		}
+	}
+
+	// 2. 处理NATS连接
+	if r.natsConn != nil {
+		connToClose := r.natsConn
+		r.natsConn = nil // 立即置空，防止重复关闭
+
+		// 发送关闭通知（尽最大努力）
+		if r.detail != nil { // 检查detail是否为nil
+			// 2.1 尝试发送关闭通知
+			subject := "close.runner"
+			newMsg := nats.NewMsg(subject)
+			newMsg.Header.Set("version", r.detail.Version)
+			newMsg.Header.Set("user", r.detail.User)
+			newMsg.Header.Set("name", r.detail.Name)
+			newMsg.Data = []byte(r.uuid)
+
+			// 设置请求超时
+			ctx1, cancel := context.WithTimeout(context.Background(), 2*time.Second) // 缩短超时时间
+			defer cancel()
+
+			// 尝试发送关闭通知，但不强制要求成功
+			if msg, err := connToClose.RequestMsgWithContext(ctx1, newMsg); err != nil {
+				logger.DebugContextf(ctx, "发送关闭通知失败: %v", err)
+			} else if msg.Header.Get("code") != "0" {
+				logger.DebugContextf(ctx, "关闭Runner返回错误: %s", msg.Header.Get("msg"))
+			}
+		}
+
+		// 2.2 关闭连接
+		connToClose.Close()
+		logger.InfoContextf(ctx, "NATS连接已关闭")
+	}
+
+	logger.InfoContextf(ctx, "Runner资源清理完成，耗时: %v", time.Since(now))
+	return closeErr
+}

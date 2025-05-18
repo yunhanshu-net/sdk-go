@@ -3,9 +3,10 @@ package runner
 import (
 	"fmt"
 	"github.com/yunhanshu-net/sdk-go/model/request"
-	"github.com/yunhanshu-net/sdk-go/model/response"
 	"github.com/yunhanshu-net/sdk-go/pkg/dto/api"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/response"
 	"gorm.io/gorm/schema"
+	"strings"
 )
 
 func env(ctx *Context, req *request.NoData, resp response.Response) error {
@@ -27,7 +28,7 @@ func ping(ctx *Context, req *request.NoData, resp response.Response) error {
 
 // buildApiInfo 从路由信息构建API信息
 func (r *Runner) buildApiInfo(worker *routerInfo) (*api.Info, error) {
-	config := worker.Config
+	config := worker.ApiInfo
 	if config == nil {
 		return nil, fmt.Errorf("路由配置为空")
 	}
@@ -75,7 +76,9 @@ func (r *Runner) buildApiInfo(worker *routerInfo) (*api.Info, error) {
 
 	return apiInfo, nil
 }
-
+func (r *routerInfo) IsDefaultRouter() bool {
+	return strings.HasPrefix(strings.TrimPrefix(r.Router, "/"), "_")
+}
 func (r *Runner) getApiInfos() ([]*api.Info, error) {
 	functions := r.routerMap
 	var apis []*api.Info
@@ -124,7 +127,7 @@ func (r *Runner) _getApiInfos(ctx *Context, req *request.NoData, resp response.R
 	if err != nil {
 		return err
 	}
-	return resp.JSON(apis)
+	return resp.Form(apis).Build()
 }
 
 func (r *Runner) _getApiInfo(ctx *Context, req *request.ApiInfoRequest, resp response.Response) error {
@@ -136,7 +139,7 @@ func (r *Runner) _getApiInfo(ctx *Context, req *request.ApiInfoRequest, resp res
 	return resp.Form(apiInfo).Build()
 }
 
-func getCallbacks(config *ApiConfig) []string {
+func getCallbacks(config *ApiInfo) []string {
 	var callbacks []string
 	if config == nil {
 		return nil

@@ -1,6 +1,6 @@
 package runner
 
-type ApiConfig struct {
+type ApiInfo struct {
 	Router      string   `json:"router"`
 	Method      string   `json:"method"`
 	ApiDesc     string   `json:"api_desc"`
@@ -18,6 +18,8 @@ type ApiConfig struct {
 	UseDB     []string      `json:"use_db"`     //用到的db文件
 	Request   interface{}   `json:"-"`
 	Response  interface{}   `json:"-"`
+
+	//用map的都是字段级别的回调，其他的都是接口级别回调
 
 	OnPageLoad OnPageLoad `json:"-"`
 
@@ -40,5 +42,4 @@ type ApiConfig struct {
 	OnInputFuzzyMap    map[string]OnInputFuzzy    `json:"-"` //key是字段的code，字段级回调
 	OnInputValidateMap map[string]OnInputValidate `json:"-"` //key是字段的code，字段级回调
 
-	//用map的都是字段级别的回调，其他的都是接口级别回调
 }

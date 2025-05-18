@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-playground/form/v4"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/response"
 	"net/url"
 	"reflect"
 	"sync"
-
-	"github.com/yunhanshu-net/sdk-go/model/response"
 )
 
 // Validatable 定义了请求参数的验证接口
@@ -83,7 +82,7 @@ func buildRuntimeMeta(fn interface{}) (*runtimeMeta, error) {
 }
 
 // 实际调用逻辑
-func doCall(method string, meta *runtimeMeta, ctx *Context, resp *response.Data, body interface{}) error {
+func doCall(method string, meta *runtimeMeta, ctx *Context, resp *response.RunFunctionResp, body interface{}) error {
 	req := meta.reqPool.Get()
 	var err error
 
@@ -136,7 +135,7 @@ func doCall(method string, meta *runtimeMeta, ctx *Context, resp *response.Data,
 	}
 
 	if resp == nil {
-		resp = new(response.Data)
+		resp = new(response.RunFunctionResp)
 	}
 	resp.TraceID = ctx.getTraceId()
 	// 反射调用
