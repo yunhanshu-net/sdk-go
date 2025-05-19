@@ -5,10 +5,12 @@ import (
 )
 
 func Get[ReqPtr any](router string, handler func(ctx *Context, req ReqPtr, resp response.Response) error, config ...*ApiInfo) {
+	initRunner()
 	r.get(router, handler, config...)
 }
 
 func Post[ReqPtr any](router string, handler func(ctx *Context, req ReqPtr, resp response.Response) error, config ...*ApiInfo) {
+	initRunner()
 	r.post(router, handler, config...)
 }
 

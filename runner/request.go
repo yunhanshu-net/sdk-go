@@ -37,6 +37,9 @@ func (r *Runner) runFunction(ctx context.Context, req *request.RunFunctionReq) (
 			}
 		}()
 
+		if req.IsMethodGet() {
+			req.Body = req.UrlQuery
+		}
 		start := time.Now()
 		var mStart runtime.MemStats
 		var mEnd runtime.MemStats

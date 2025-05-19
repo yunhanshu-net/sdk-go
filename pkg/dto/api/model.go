@@ -1,12 +1,22 @@
 package api
 
-import "github.com/yunhanshu-net/sdk-go/view/widget"
+import (
+	"encoding/json"
+)
 
 type Params struct {
 
 	//form,table,echarts,bi,3D .....
 	RenderType string       `json:"render_type"`
 	Children   []*ParamInfo `json:"children"`
+}
+
+func (p *Params) JSONRawMessage() (json.RawMessage, error) {
+	marshal, err := json.Marshal(p)
+	if err != nil {
+		return json.RawMessage("{}"), err
+	}
+	return marshal, nil
 }
 
 type ParamInfo struct {
@@ -19,12 +29,12 @@ type ParamInfo struct {
 	//是否必填
 	Required bool `json:"required"`
 
-	Callbacks    string        `json:"callbacks"`
-	Validates    string        `json:"validates"`
-	WidgetConfig widget.Widget `json:"widget_config"`
-	WidgetType   string        `json:"widget_type"`
-	ValueType    string        `json:"value_type"`
-	Example      string        `json:"example"`
+	Callbacks    string      `json:"callbacks"`
+	Validates    string      `json:"validates"`
+	WidgetConfig interface{} `json:"widget_config"` //这里是widget.Widget类型的接口
+	WidgetType   string      `json:"widget_type"`
+	ValueType    string      `json:"value_type"`
+	Example      string      `json:"example"`
 }
 
 type Info struct {
@@ -33,10 +43,10 @@ type Info struct {
 	User        string   `json:"user"`
 	Runner      string   `json:"runner"`
 	ApiDesc     string   `json:"api_desc"`
-	Labels      []string `json:"labels"`
 	ChineseName string   `json:"chinese_name"`
 	EnglishName string   `json:"english_name"`
 	Classify    string   `json:"classify"`
+	Tags        []string `json:"tags"`
 	//输入参数
 	ParamsIn *Params `json:"params_in"`
 	//输出参数

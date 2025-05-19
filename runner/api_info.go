@@ -1,15 +1,15 @@
 package runner
 
 type ApiInfo struct {
-	Router      string   `json:"router"`
-	Method      string   `json:"method"`
-	ApiDesc     string   `json:"api_desc"`
-	IsPublicApi bool     `json:"is_public_api"`
-	Labels      []string `json:"labels"`
+	Router      string `json:"router"`
+	Method      string `json:"method"`
+	ApiDesc     string `json:"api_desc"`
+	IsPublicApi bool   `json:"is_public_api"`
+	//Labels      []string `json:"labels"`
 	ChineseName string   `json:"chinese_name"`
 	EnglishName string   `json:"english_name"`
 	Classify    string   `json:"classify"`
-	Tags        string   `json:"tags"`
+	Tags        []string `json:"tags"`
 
 	//form，table，
 	RenderType string `json:"widget"`

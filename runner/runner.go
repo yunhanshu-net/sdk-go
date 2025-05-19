@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/nats-io/nats.go"
 	"github.com/yunhanshu-net/pkg/dto/runnerproject"
+	"github.com/yunhanshu-net/sdk-go/env"
 	"github.com/yunhanshu-net/sdk-go/pkg/constants"
 	"github.com/yunhanshu-net/sdk-go/pkg/dto/request"
 	"github.com/yunhanshu-net/sdk-go/pkg/logger"
@@ -14,7 +15,7 @@ import (
 
 // New 创建一个新的Runner实例
 func New() *Runner {
-	runner, err := runnerproject.NewRunner(User, Name, Root, Version)
+	runner, err := runnerproject.NewRunner(env.User, env.Name, env.Root, env.Version)
 	if err != nil {
 		panic(err)
 	}

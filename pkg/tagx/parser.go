@@ -58,6 +58,9 @@ func ParseStructFieldsTypeOf(obj reflect.Type, tagKey string) ([]*FieldInfo, err
 
 func GetSliceElementType(slice interface{}) (tp reflect.Type, err error) {
 	t := reflect.TypeOf(slice)
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
 	if t.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("input must be a slice")
 	}

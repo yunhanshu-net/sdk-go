@@ -1,4 +1,4 @@
-package runner
+package env
 
 var (
 	Version string

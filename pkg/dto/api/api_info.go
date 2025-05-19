@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"github.com/yunhanshu-net/sdk-go/model/response"
 	"github.com/yunhanshu-net/sdk-go/pkg/common/slicesx"
 	"github.com/yunhanshu-net/sdk-go/pkg/stringsx"
@@ -13,9 +12,8 @@ import (
 	"strings"
 )
 
-func NewRequestParams(el interface{}, t string) (*Params, error) {
+func NewRequestParams(el interface{}, renderType string) (*Params, error) {
 	typeOf := reflect.TypeOf(el)
-	logrus.Info("typeOf: kind", typeOf.Kind())
 	if typeOf.Kind() == reflect.Pointer {
 		typeOf = typeOf.Elem()
 	}
@@ -30,20 +28,19 @@ func NewRequestParams(el interface{}, t string) (*Params, error) {
 	//	判断不同数据类型form,table,echarts,bi,3D ....
 	children := make([]*ParamInfo, 0, len(reqFields))
 	for _, field := range reqFields {
-		info, err := newParamInfo(field)
+		info, err := newParamInfo(field, renderType)
 		if err != nil {
 			return nil, err
 		}
 		children = append(children, info)
 	}
 
-	return &Params{RenderType: stringsx.DefaultString(t, response.RenderTypeForm), Children: children}, nil
+	return &Params{RenderType: stringsx.DefaultString(renderType, response.RenderTypeForm), Children: children}, nil
 }
 
 func NewResponseParams(el interface{}, renderType string) (*Params, error) {
 
 	rspType := reflect.TypeOf(el)
-	logrus.Info("rspType: kind", rspType.Kind())
 	if rspType.Kind() == reflect.Pointer {
 		rspType = rspType.Elem()
 	}
@@ -77,14 +74,14 @@ func NewResponseParams(el interface{}, renderType string) (*Params, error) {
 		return paramsOut, nil
 	}
 }
-func newParamInfo(tag *tagx.FieldInfo) (*ParamInfo, error) {
+func newParamInfo(tag *tagx.FieldInfo, renderType string) (*ParamInfo, error) {
 	if tag == nil {
 		return nil, fmt.Errorf("tag==nil")
 	}
 	if tag.Tags == nil {
 		tag.Tags = map[string]string{}
 	}
-	widgetIns, err := widget.NewWidget(tag)
+	widgetIns, err := widget.NewWidget(tag, renderType)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +126,7 @@ func newParams(fields []*tagx.FieldInfo, renderType string) (*Params, error) {
 	//	判断不同数据类型form,table,echarts,bi,3D ....
 	children := make([]*ParamInfo, 0, len(fields))
 	for _, field := range fields {
-		info, err := newParamInfo(field)
+		info, err := newParamInfo(field, renderType)
 		if err != nil {
 			return nil, err
 		}

@@ -8,6 +8,7 @@ require (
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/nats-io/nats.go v1.42.0
+	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.9.1
 	github.com/xuri/excelize/v2 v2.9.1
