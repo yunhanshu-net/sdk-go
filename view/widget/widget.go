@@ -1,12 +1,12 @@
 package widget
 
 import (
+	"github.com/yunhanshu-net/pkg/x/stringsx"
+	"github.com/yunhanshu-net/pkg/x/tagx"
 	"github.com/yunhanshu-net/sdk-go/pkg/dto/response"
-	"github.com/yunhanshu-net/sdk-go/pkg/stringsx"
-	"github.com/yunhanshu-net/sdk-go/pkg/tagx"
 )
 
-func NewWidget(info *tagx.FieldInfo, renderType string) (Widget, error) {
+func NewWidget(info *tagx.RunnerFieldInfo, renderType string) (Widget, error) {
 	if info.Tags == nil {
 		info.Tags = make(map[string]string)
 	}

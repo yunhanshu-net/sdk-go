@@ -45,7 +45,7 @@ const (
 // UseValueType 这里需要判断，假如请求字段是go的int类型，但是用户不小心在tag里把类型写成string类型了，这时候，我们不应该应用用户的类型，
 // 如果应用用户类型导致前端输入字符串到go的int类型，会直接导致请求解析失败，所以这里需要兜底帮用户判断他的类型是否正确，不正确的话我们需要调整正确
 func UseValueType(tagType string, fieldType string) string {
-	if tagType != fieldType {
+	if tagType == fieldType {
 		return tagType
 	}
 	return fieldType //用field的类型是安全的

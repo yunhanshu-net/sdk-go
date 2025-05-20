@@ -3,6 +3,8 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/yunhanshu-net/pkg/query"
+	"github.com/yunhanshu-net/sdk-go/pkg/dto/response"
 	"testing"
 )
 
@@ -15,6 +17,19 @@ type AddReq struct {
 
 type AddResp struct {
 	Result int `json:"result" runner:"code:result;name:计算结果;example:30000"`
+}
+
+func TestReq(t *testing.T) {
+	params, err := NewRequestParams(&query.PageInfoReq{}, response.RenderTypeTable)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(params)
+	marshal, err := json.Marshal(params)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(marshal))
 }
 
 func TestName(t *testing.T) {

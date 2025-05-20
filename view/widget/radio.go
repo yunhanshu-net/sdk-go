@@ -1,6 +1,6 @@
 package widget
 
-import "github.com/yunhanshu-net/sdk-go/pkg/tagx"
+import "github.com/yunhanshu-net/pkg/x/tagx"
 
 // RadioWidget 单选框组件
 type RadioWidget struct {
@@ -21,7 +21,7 @@ type RadioWidget struct {
 }
 
 // newRadioWidget 创建单选框组件
-func newRadioWidget(info *tagx.FieldInfo) (Widget, error) {
+func newRadioWidget(info *tagx.RunnerFieldInfo) (Widget, error) {
 	radio := &RadioWidget{
 		Widget: WidgetRadio,
 		Type:   TypeString,

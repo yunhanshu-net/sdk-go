@@ -1,9 +1,9 @@
 package widget
 
-import "github.com/yunhanshu-net/sdk-go/pkg/tagx"
+import "github.com/yunhanshu-net/pkg/x/tagx"
 
 // newSliderWidget 创建滑块组件
-func newSliderWidget(info *tagx.FieldInfo) (Widget, error) {
+func newSliderWidget(info *tagx.RunnerFieldInfo) (Widget, error) {
 	slider := &SliderWidget{
 		Widget: WidgetSlider,
 		Type:   TypeNumber,

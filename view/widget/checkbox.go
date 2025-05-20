@@ -1,6 +1,6 @@
 package widget
 
-import "github.com/yunhanshu-net/sdk-go/pkg/tagx"
+import "github.com/yunhanshu-net/pkg/x/tagx"
 
 // CheckboxWidget 多选框组件
 type CheckboxWidget struct {
@@ -25,7 +25,7 @@ type CheckboxWidget struct {
 }
 
 // newCheckboxWidget 创建多选框组件
-func newCheckboxWidget(info *tagx.FieldInfo) (Widget, error) {
+func newCheckboxWidget(info *tagx.RunnerFieldInfo) (Widget, error) {
 	checkbox := &CheckboxWidget{
 		Widget: WidgetCheckbox,
 		Type:   TypeArray,

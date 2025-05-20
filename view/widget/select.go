@@ -2,7 +2,7 @@ package widget
 
 import (
 	"errors"
-	"github.com/yunhanshu-net/sdk-go/pkg/tagx"
+	"github.com/yunhanshu-net/pkg/x/tagx"
 	"github.com/yunhanshu-net/sdk-go/view/widget/types"
 	"strings"
 )
@@ -19,7 +19,7 @@ type SelectWidget struct {
 }
 
 // NewSelectWidget 创建下拉框组件
-func NewSelectWidget(info *tagx.FieldInfo) (Widget, error) {
+func NewSelectWidget(info *tagx.RunnerFieldInfo) (Widget, error) {
 	if info == nil {
 		return nil, errors.New("<UNK>")
 	}

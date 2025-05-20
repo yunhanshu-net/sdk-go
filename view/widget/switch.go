@@ -1,6 +1,6 @@
 package widget
 
-import "github.com/yunhanshu-net/sdk-go/pkg/tagx"
+import "github.com/yunhanshu-net/pkg/x/tagx"
 
 // SwitchWidget 开关组件
 type SwitchWidget struct {
@@ -31,7 +31,7 @@ type SwitchWidget struct {
 }
 
 // newSwitchWidget 创建开关组件
-func newSwitchWidget(info *tagx.FieldInfo) (Widget, error) {
+func newSwitchWidget(info *tagx.RunnerFieldInfo) (Widget, error) {
 	switch_ := &SwitchWidget{
 		Widget: WidgetSwitch,
 		Type:   TypeBoolean,

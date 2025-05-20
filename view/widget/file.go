@@ -1,6 +1,6 @@
 package widget
 
-import "github.com/yunhanshu-net/sdk-go/pkg/tagx"
+import "github.com/yunhanshu-net/pkg/x/tagx"
 
 // FileWidget 文件上传组件
 type FileWidget struct {
@@ -35,7 +35,7 @@ type FileWidget struct {
 }
 
 // newFileWidget 创建文件上传组件
-func newFileWidget(info *tagx.FieldInfo) (Widget, error) {
+func newFileWidget(info *tagx.RunnerFieldInfo) (Widget, error) {
 	file := &FileWidget{
 		Widget: WidgetFile,
 		Type:   TypeFile,

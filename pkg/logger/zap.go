@@ -3,7 +3,7 @@ package logger
 import (
 	"context"
 	"fmt"
-	"github.com/yunhanshu-net/sdk-go/pkg/constants"
+	"github.com/yunhanshu-net/pkg/constants"
 	"os"
 	"path/filepath"
 	"runtime"

@@ -2,8 +2,8 @@ package widget
 
 import (
 	"fmt"
-	"github.com/yunhanshu-net/sdk-go/pkg/stringsx"
-	"github.com/yunhanshu-net/sdk-go/pkg/tagx"
+	"github.com/yunhanshu-net/pkg/x/stringsx"
+	"github.com/yunhanshu-net/pkg/x/tagx"
 	"github.com/yunhanshu-net/sdk-go/view/widget/types"
 )
 
@@ -30,11 +30,8 @@ type InputWidget struct {
 }
 
 // NewInputWidget 创建输入框组件
-func NewInputWidget(info *tagx.FieldInfo) (*InputWidget, error) {
-	valueType, err := info.GetValueType()
-	if err != nil {
-		return nil, err
-	}
+func NewInputWidget(info *tagx.RunnerFieldInfo) (*InputWidget, error) {
+	valueType := info.GetValueType()
 	if !types.IsValueType(valueType) {
 		return nil, fmt.Errorf("不是合法的值类型：%s", valueType)
 	}
