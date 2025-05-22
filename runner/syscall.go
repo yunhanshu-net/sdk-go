@@ -4,9 +4,9 @@ import (
 	"context"
 	"github.com/spf13/cobra"
 	"github.com/yunhanshu-net/pkg/constants"
+	"github.com/yunhanshu-net/pkg/x/jsonx"
 	"github.com/yunhanshu-net/sdk-go/pkg/dto/response"
 	"github.com/yunhanshu-net/sdk-go/pkg/dto/usercall"
-	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
 )
 
 func (r *Runner) syscallCmd(cmd *cobra.Command, args []string) {

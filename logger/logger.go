@@ -2,7 +2,7 @@ package logger
 
 import (
 	"fmt"
-	"github.com/yunhanshu-net/sdk-go/pkg/jsonx"
+	"github.com/yunhanshu-net/pkg/x/jsonx"
 	"runtime"
 	"strconv"
 	"time"

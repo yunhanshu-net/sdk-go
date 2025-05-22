@@ -16,11 +16,39 @@ type AddReq struct {
 }
 
 type AddResp struct {
-	Result int `json:"result" runner:"code:result;name:计算结果;example:30000"`
+	Result   int    `json:"result" runner:"code:result;name:计算结果;example:30000"`
+	Receiver string `json:"receiver" form:"receiver" runner:"code:receiver;name:接收人"`
+	Desc     string `json:"desc" form:"desc" runner:"code:desc;name:描述"`
 }
 
 func TestReq(t *testing.T) {
 	params, err := NewRequestParams(&query.PageInfoReq{}, response.RenderTypeTable)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(params)
+	marshal, err := json.Marshal(params)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(marshal))
+}
+
+func TestResp(t *testing.T) {
+	params, err := NewResponseParams(&query.PaginatedTable[[]AddResp]{}, response.RenderTypeTable)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(params)
+	marshal, err := json.Marshal(params)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(marshal))
+}
+
+func TestTableReq(t *testing.T) {
+	params, err := NewTableRequestParams(&query.PaginatedTable[[]AddResp]{})
 	if err != nil {
 		panic(err)
 	}

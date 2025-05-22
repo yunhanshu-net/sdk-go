@@ -4,7 +4,7 @@ package runner
 import (
 	"encoding/json"
 	"fmt"
-	consts "github.com/yunhanshu-net/sdk-go/pkg/constants"
+	consts "github.com/yunhanshu-net/pkg/constants/usercall"
 	"github.com/yunhanshu-net/sdk-go/pkg/dto/response"
 	"github.com/yunhanshu-net/sdk-go/pkg/dto/usercall"
 	"github.com/yunhanshu-net/sdk-go/pkg/logger"

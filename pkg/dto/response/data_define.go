@@ -18,9 +18,9 @@ func build(resp *RunFunctionResp, data interface{}, renderType string) error {
 		resp.Multiple = true
 		resp.DataList = append(resp.DataList, resp.Data)
 		resp.DataList = append(resp.DataList, data)
-		resp.DataType = resp.DataType + "," + renderType
+		resp.RenderType = resp.RenderType + "," + renderType
 	}
-	resp.DataType = renderType
+	resp.RenderType = renderType
 	resp.Data = data
 	return nil
 }
